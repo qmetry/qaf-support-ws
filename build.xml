@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--QMetry Automation Framework provides a powerful and versatile platform to author 
+Automated Test Cases in Behavior Driven, Keyword Driven or Code Driven approach
+               
+Copyright 2016 Infostretch Corporation
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
+
+You should have received a copy of the GNU General Public License along with this program in the name of LICENSE.txt in the root folder of the distribution. If not, see https://opensource.org/licenses/gpl-3.0.html
+
+See the NOTICE.TXT file in root folder of this source files distribution 
+for additional information regarding copyright ownership and licenses
+of other open source software / files used by QMetry Automation Framework.
+
+For any inquiry or need additional information, please contact support-qaf@infostretch.com-->
+
+
+<project basedir="." default="build" name="QAF Web Services Support"
+	xmlns:ivy="antlib:org.apache.ivy.ant">
+
+
+	<!-- Sets the DSTAMP, TSTAMP, and TODAY properties in the current project -->
+	<tstamp>
+		<format property="build.timestamp" pattern="dd-MMM-yyyy HH:mm:ss" />
+	</tstamp>
+
+	<property name="bin.dir" value="${basedir}/bin" />
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="meta.dir" value="${basedir}/META-INF" />
+	<property name="debuglevel" value="source,lines,vars" />
+	<property name="target" value="1.6" />
+	<property name="source" value="1.6" />
+	<property file="build.properties" />
+
+	<path id="build.classpath">
+		<fileset dir="${lib.dir}">
+			<include name="*.jar" />
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<!-- IVY -->
+	<target name="download-ivy" unless="skip.download">
+		<mkdir dir="${ivy.jar.dir}" />
+		<!-- download Ivy from web site so that it can be used even without any 
+			special installation -->
+		<echo message="installing ivy..." />
+		<get
+			src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar"
+			dest="${ivy.jar.file}" usetimestamp="true" />
+	</target>
+
+	<!-- ================================= target: install-ivy this target is 
+		not necessary if you put ivy.jar in your ant lib directory if you already 
+		have ivy in your ant lib, you can simply remove this target and the dependency 
+		the 'go' target has on it ================================= -->
+	<target name="install-ivy" depends="download-ivy" description="--> install ivy">
+		<!-- try to load ivy here from local ivy dir, in case the user has not 
+			already dropped it into ant's lib dir (note that the latter copy will always 
+			take precedence). We will not fail as long as local lib dir exists (it may 
+			be empty) and ivy is in at least one of ant's lib dir or the local lib dir. -->
+		<path id="ivy.lib.path">
+			<fileset dir="${ivy.jar.dir}" includes="*.jar" />
+		</path>
+		<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant"
+			classpathref="ivy.lib.path" />
+
+	</target>
+
+	<!-- ================================= target: resolve ================================= -->
+	<target name="resolve" description="--> retrieve dependencies with ivy"
+		depends="install-ivy">
+
+
+		<ivy:resolve file="ivy.xml" />
+		<ivy:cachepath pathid="lib.path.id" />
+
+		<ivy:addpath topath="build.classpath">
+			<path refid="lib.path.id" />
+		</ivy:addpath>
+	</target>
+
+	<target name="init" depends="resolve">
+		<mkdir dir="${bin.dir}" />
+		<copy includeemptydirs="false" todir="${bin.dir}">
+			<fileset dir="${src.dir}">
+				<exclude name="**/*.ucls" />
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+
+
+	<target name="clean">
+		<delete dir="${bin.dir}" failonerror="false" />
+		<delete dir="${dist.dir}" failonerror="false" />
+	</target>
+
+
+	<target name="compile" depends="init">
+		<taskdef classpathref="build.classpath"
+			resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties" />
+
+		<echo level="info">--- compile (start) ---</echo>
+		<iajc source="${source}" target="${target}" showweaveinfo="true"
+			verbose="true" destdir="${bin.dir}" debug="false">
+			<inpath location="${src.dir}">
+			</inpath>
+			<sourceroots>
+				<pathelement location="${src.dir}" />
+			</sourceroots>
+			<classpath refid="build.classpath">
+			</classpath>
+		</iajc>
+		<echo level="info">--- compile (finished) ---</echo>
+	</target>
+
+	<!-- ================================= target: build ================================= -->
+	<target name="build" depends="make-jar, gendoc,gensource"
+		description="build framework, generate docs">
+
+
+	</target>
+
+
+
+	<target name="make-jar" depends="clean, compile" description="build basic version">
+
+		<mkdir dir="${dist.dir}" />
+		<!-- All - core + testNG + step -->
+		<jar destfile="${dist.dir}/${artifact.name}.jar" basedir="${bin.dir}"
+			includes="**/*.*">
+			<metainf dir="." includes="LICENSE.txt,NOTICE.txt" />
+			<manifest>
+				<attribute name="Vendor" value="Infostretch Corp." />
+				<attribute name="Built-By" value="${user.name}" />
+				<section name="Build-Info">
+					<attribute name="qaf-Build-Time" value="${build.timestamp}" />
+					<!-- Information about the program itself -->
+					<attribute name="qaf-Version" value="${version-num}" />
+					<attribute name="qaf-Revision" value="${build-num}" />
+					<attribute name="qaf-Type" value="${artifact.name}" />
+				</section>
+			</manifest>
+			<metainf dir="${src.dir}" includes="**/aop.xml" />
+		</jar>
+
+	</target>
+
+
+	<target name="gendoc" depends="init" description="generate documentation">
+		<delete dir="${dist.dir}/docs" />
+
+		<mkdir dir="${dist.dir}/docs" />
+		<javadoc access="protected" sourcepath="${src.dir}"
+			packagenames="com.qmetry.**.*" destdir="${dist.dir}/docs" verbose="true"
+			author="true" version="true" use="true"
+			windowtitle="QAF Web Services Support - ${version-num}.${build-num}">
+			<doctitle>
+				<![CDATA[<h1>QAF Web Services Support - ${version-num}.${build-num}</h1>]]>
+			</doctitle>
+			<bottom>
+			<![CDATA[<i>Copyright &#169; 2000 Infostretch Corp.</i>]]>
+			</bottom>
+			<classpath refid="build.classpath" />
+			<tag name="todo" scope="all" description="To do:" />
+		</javadoc>
+		<jar compress="true" destfile="${dist.dir}/${artifact.name}-javadoc.jar"
+			basedir="${dist.dir}/docs" />
+		<delete dir="${dist.dir}/docs">
+		</delete>
+	</target>
+	<target name="gensource" description="Generate Source" depends="init">
+		<jar destfile="${dist.dir}/${artifact.name}-sources.jar" basedir="${src.dir}">
+			<metainf dir="." includes="LICENSE" />
+			<manifest>
+				<attribute name="Vendor" value="Infostretch Corp." />
+				<attribute name="Built-By" value="${user.name}" />
+
+				<section name="Build-Info">
+					<attribute name="qaf-Build-Time" value="${build.timestamp}" />
+					<!-- Information about the program itself -->
+					<attribute name="qaf-Version" value="${version-num}" />
+					<attribute name="qaf-Revision" value="${build-num}" />
+					<attribute name="qaf-Type" value="${artifact.name}-sources" />
+				</section>
+			</manifest>
+		</jar>
+	</target>
+	<target name="publish" depends="init, build">
+		<!-- Determine build number from previously published revisions -->
+		<ivy:buildnumber resolver="local-m2-publish"
+			organisation="${ivy.organisation}" module="${ivy.module}" revision="${release.num}" />
+
+		<!-- Resolve ivy dependencies and create a Maven POM file -->
+		<ivy:deliver deliverpattern="${dist.dir}/ivy.xml"
+			pubrevision="${release.num}" status="release" />
+		<ivy:makepom ivyfile="${dist.dir}/ivy.xml" pomfile="${dist.dir}/${artifact.name}.pom">
+			<mapping conf="*,default" scope="compile" />
+		</ivy:makepom>
+
+		<!-- Publish the local repo. Defaults to ~/.ivy2/local -->
+		<ivy:publish resolver="local-m2-publish" forcedeliver="true"
+			publishivy="true" pubrevision="${release.num}" overwrite="true">
+			<artifacts pattern="${dist.dir}/[artifact].[ext]" />
+			<artifact name="${artifact.name}" pattern="${dist.dir}/[artifact].[ext]"
+				ext="pom" type="pom" version="${release.num}" />
+			<artifact name="${artifact.name}-sources" pattern="${dist.dir}/[artifact].[ext]"
+				ext="jar" classifier="sources" type="sources" version="${release.num}" />
+			<artifact name="${artifact.name}-javadoc" pattern="${dist.dir}/[artifact].[ext]"
+				ext="jar" classifier="javadoc" type="javadoc" version="${release.num}" />
+		</ivy:publish>
+	</target>
+
+	<target name="ivy-publish-share" depends="make-jar"
+		description="publish jar/source to maven repo mounted at ~/repo">
+		<ivy:publish resolver="share-m2" forcedeliver="true"
+			overwrite="true" publishivy="false">
+			<artifacts pattern="${dist.dir}/[artifact].[ext]" />
+		</ivy:publish>
+	</target>
+</project>
