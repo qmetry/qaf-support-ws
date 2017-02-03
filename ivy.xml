@@ -24,7 +24,7 @@
 		<!--  ws  -->
 		<dependency org="xmlunit" name="xmlunit" rev="1.4" />
 		<dependency org="org.xmlmatchers" name="xml-matchers" rev="latest.integration" />
-		<dependency org="com.jayway.jsonpath" name="json-path" rev="0.8.1" />
+		<dependency org="com.jayway.jsonpath" name="json-path" rev="2.2.0" />
 		<dependency org="com.jayway.jsonpath" name="json-path-assert"
-			rev="0.8.1" />	</dependencies>
+			rev="2.2.0" />	</dependencies>
 </ivy-module>
