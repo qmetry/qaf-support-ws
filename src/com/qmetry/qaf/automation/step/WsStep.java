@@ -240,7 +240,7 @@ public final class WsStep {
 	/**
 	 * This method request for the given parameters
 	 * 
-	 * @param requset
+	 * @param requset map
 	 */
 	@QAFTestStep(description = "user requests : {0}")
 	public void userRequests(Map<String, String> requset) {
@@ -335,14 +335,16 @@ public final class WsStep {
 	 * Example:
 	 * </p>
 	 * <code>
-	 * response should have key 'user.username' with value 'admin'
+	 * response should have 'admin' at 'user.username'
 	 * </code>
 	 * <p />
+	 * @param expectedValue
+	 * 		: expected value
 	 * @param path
 	 * 		: jsonpath
 	 */
-	@QAFTestStep(description = "response should have key {jsonpath} with value {value}")
-	public void responseShouldHaveKeyWithValue(String path, Object expectedValue) {
+	@QAFTestStep(description = "response should have {expectedvalue} at {jsonpath}")
+	public void responseShouldHaveKeyWithValue(Object expectedValue, String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
 		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
@@ -377,14 +379,16 @@ public final class WsStep {
 	 * Example:
 	 * </p>
 	 * <code>
-	 * response should have key 'user.username' with value 'admin'
+	 * response should have value contains 'admin' at 'user.username'
 	 * </code>
 	 * <p />
+	 * @param value
+	 * 		: expected value
 	 * @param path
 	 * 		: jsonpath
 	 */
-	@QAFTestStep(description = "response should have key {0} and value contains {1}")
-	public void responseShouldHaveKeyAndValueContains(String path, String value) {
+	@QAFTestStep(description = "response should have value contains {expectedvalue} at {jsonpath}")
+	public void responseShouldHaveKeyAndValueContains(String value, String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
 		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
