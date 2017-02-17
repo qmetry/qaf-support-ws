@@ -184,7 +184,7 @@ public final class WsStep {
 	 * @see Status
 	 */
 	@QAFTestStep(description = "response should have status {status}")
-	public static void response_should_have_status(String status) {
+	public static void responseShouldHaveStatus(String status) {
 		assertThat("Response Status", new RestTestBase().getResponse().getStatus().name(),
 				Matchers.equalToIgnoringCase(status));
 	}
@@ -208,7 +208,7 @@ public final class WsStep {
 	 * @see Status
 	 */
 	@QAFTestStep(description = "response should have status code {statusCode}")
-	public static void response_should_have_statuscode(int statusCode) {
+	public static void responseShouldHaveStatuscode(int statusCode) {
 		assertThat("Response Status",
 				new RestTestBase().getResponse().getStatus().getStatusCode(),
 				Matchers.equalTo(statusCode));
@@ -232,7 +232,7 @@ public final class WsStep {
 	 *            : {0} : xpath string to be verified in respose
 	 */
 	@QAFTestStep(description = "response should have xpath {xpath}")
-	public static void response_should_have_xpath(String xpath) {
+	public static void responseShouldHaveXpath(String xpath) {
 		assertThat(the(new RestTestBase().getResponse().getMessageBody()),
 				hasXPath(xpath));
 	}
@@ -243,7 +243,7 @@ public final class WsStep {
 	 * @param requset map
 	 */
 	@QAFTestStep(description = "user requests : {0}")
-	public void userRequests(Map<String, String> requset) {
+	public static void userRequests(Map<String, String> requset) {
 		RestRequestBean bean = new RestRequestBean();
 		bean.fillData(requset);
 		RESTClient.doExecute(bean);
@@ -264,7 +264,7 @@ public final class WsStep {
 	 *            : header to be verified in respose
 	 */
 	@QAFTestStep(description = "response should have header {0}")
-	public void responseShouldHaveHeader(String header) {
+	public static void responseShouldHaveHeader(String header) {
 		assertThat(new RestTestBase().getResponse().getHeaders(), Matchers.hasKey(header));
 	}
 
@@ -285,7 +285,7 @@ public final class WsStep {
 	 * 		: value to be verified for header
 	 */
 	@QAFTestStep(description = "response should have header {0} with value {1}")
-	public void responseShouldHaveHeaderWithValue(String header, String value) {
+	public static void responseShouldHaveHeaderWithValue(String header, String value) {
 		assertThat(new RestTestBase().getResponse().getHeaders(), hasEntry(equalTo(header), Matchers.hasItem(value)));
 	}
 
@@ -302,7 +302,7 @@ public final class WsStep {
 	 * 		: jsonpath
 	 */
 	@QAFTestStep(description = "response should have {jsonpath}")
-	public void responseShouldHaveJsonPath(String path) {
+	public static void responseShouldHaveJsonPath(String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
 		assertThat("Response Body has " + path, hasJsonPath(new RestTestBase().getResponse().getMessageBody(), path),
@@ -322,7 +322,7 @@ public final class WsStep {
 	 * 		: jsonpath
 	 */
 	@QAFTestStep(description = "response should not have {jsonpath}")
-	public void responseShouldNotHaveJsonPath(String path) {
+	public static void responseShouldNotHaveJsonPath(String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
 		assertThat("Response Body has not " + path,
@@ -344,7 +344,7 @@ public final class WsStep {
 	 * 		: jsonpath
 	 */
 	@QAFTestStep(description = "response should have {expectedvalue} at {jsonpath}")
-	public void responseShouldHaveKeyWithValue(Object expectedValue, String path) {
+	public static void responseShouldHaveKeyWithValue(Object expectedValue, String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
 		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
@@ -366,7 +366,7 @@ public final class WsStep {
 	 * 		variable that can be use later
 	 */
 	@QAFTestStep(description = "store response body {0} to {1}")
-	public void storeResponseBodyto(String path, String variable) {
+	public static void storeResponseBodyto(String path, String variable) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
 		Object value = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
@@ -388,7 +388,7 @@ public final class WsStep {
 	 * 		: jsonpath
 	 */
 	@QAFTestStep(description = "response should have value contains {expectedvalue} at {jsonpath}")
-	public void responseShouldHaveKeyAndValueContains(String value, String path) {
+	public static void responseShouldHaveKeyAndValueContains(String value, String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
 		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
@@ -410,7 +410,7 @@ public final class WsStep {
 	 * 		variable that can be use later
 	 */
 	@QAFTestStep(description = "store response header {0} to {1}")
-	public void storeResponseHeaderTo(String header, String property) {
+	public static void storeResponseHeaderTo(String header, String property) {
 		ConfigurationManager.getBundle().setProperty(property,
 				new RestTestBase().getResponse().getHeaders().get(header));
 	}
