@@ -208,7 +208,7 @@ public final class WsStep {
 	 * @see Status
 	 */
 	@QAFTestStep(description = "response should have status code {statusCode}")
-	public static void responseShouldHaveStatuscode(int statusCode) {
+	public static void responseShouldHaveStatusCode(int statusCode) {
 		assertThat("Response Status",
 				new RestTestBase().getResponse().getStatus().getStatusCode(),
 				Matchers.equalTo(statusCode));
