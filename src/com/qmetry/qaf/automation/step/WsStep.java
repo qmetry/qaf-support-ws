@@ -428,4 +428,183 @@ public final class WsStep {
 		}
 		return true;
 	}
+	
+	/**
+	 * This method validates that value at jsonpath should be less than expectedvalue
+	 * <p>
+	 * Example:
+	 * </p>
+	 * <code>
+	 * response should be less than 500 at 'student.totalmarks'
+	 * </code>
+	 * <p />
+	 * 
+	 * @param value
+	 *            : expected value
+	 * @param path
+	 *            : jsonpath
+	 */
+	@QAFTestStep(description = "response should be less than {expectedvalue} at {jsonpath}")
+	public static void responseShouldLessThan(double expectedValue, String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.lessThan(expectedValue));
+	}
+
+	/**
+	 * This method validates that value at jsonpath should be less than or equal to expectedvalue
+	 * <p>
+	 * Example:
+	 * </p>
+	 * <code>
+	 * response should be less than or equals to 500 at 'student.totalmarks'
+	 * </code>
+	 * <p />
+	 * 
+	 * @param value
+	 *            : expected value
+	 * @param path
+	 *            : jsonpath
+	 */
+	@QAFTestStep(description = "response should be less than or equals to {expectedvalue} at {jsonpath}")
+	public static void responseShouldLessThanOrEqualsTo(double expectedValue, String path) {
+		Object actual = JsonPath.read(new	 RestTestBase().getResponse().getMessageBody(), getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.lessThanOrEqualTo(expectedValue));
+	}
+
+	/**
+	 * This method validates that value at jsonpath should be greater than expectedvalue
+	 * <p>
+	 * Example:
+	 * </p>
+	 * <code>
+	 * response should be greater than 500 at 'student.totalmarks'
+	 * </code>
+	 * <p />
+	 * 
+	 * @param value
+	 *            : expected value
+	 * @param path
+	 *            : jsonpath
+	 */
+	@QAFTestStep(description = "response should be greater than {expectedvalue} at {jsonpath}")
+	public static void responseShouldGreaterThan(double expectedValue, String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.greaterThan(expectedValue));
+	}
+
+	/**
+	 * This method validates that value at jsonpath should be greater than or equal to expectedvalue
+	 * <p>
+	 * Example:
+	 * </p>
+	 * <code>
+	 * response should be greater than or equals to 500 at 'student.totalmarks'
+	 * </code>
+	 * <p />
+	 * 
+	 * @param value
+	 *            : expected value
+	 * @param path
+	 *            : jsonpath
+	 */
+	@QAFTestStep(description = "response should be greater than or equals to {expectedvalue} at {jsonpath}")
+	public static void responseShouldGreaterThanOrEqualsTo(double expectedValue, String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.greaterThanOrEqualTo(expectedValue));
+	}
+
+	/**
+	 * This method validates value at jsonpath equals to expected value with ignoring case or not
+	 * <p>
+	 * Example:
+	 * </p>
+	 * <code>
+	 * response should have value ignoring case 'admin' at 'user.username'
+	 * </code>
+	 * <p />
+	 * 
+	 * @param value
+	 *            : expected value
+	 * @param path
+	 *            : jsonpath
+	 */
+	@QAFTestStep(description = "response should have value ignoring case {expectedvalue} at {jsonpath}")
+	public static void responseShouldHaveValueIgnoringCase(String expectedValue, String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		assertThat(String.valueOf(actual), Matchers.equalToIgnoringCase(expectedValue));
+	}
+
+	/**
+	 * This method validates value at jsonpath contains expected value with ignoring case or not
+	 * <p>
+	 * Example:
+	 * </p>
+	 * <code>
+	 * response should have value contains ignoring case 'admin' at 'user.username'
+	 * </code>
+	 * <p />
+	 * 
+	 * @param value
+	 *            : expected value
+	 * @param path
+	 *            : jsonpath
+	 */
+	@QAFTestStep(description = "response should have value contains ignoring case {expectedvalue} at {jsonpath}")
+	public static void responseShouldHaveValueContainsIgnoringCase(String expectedValue, String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		assertThat(String.valueOf(actual).toUpperCase(), Matchers.containsString(expectedValue.toUpperCase()));
+	}
+
+	/**
+	 * This method validates value of jsonpath matches with regEx value or not
+	 * <p>
+	 * Example:
+	 * </p>
+	 * <code>
+	 * response should have value matches with '[a-z]*' at 'user.username'
+	 * </code>
+	 * <p />
+	 * 
+	 * @param value
+	 *            : expected value
+	 * @param path
+	 *            : jsonpath
+	 */
+	@QAFTestStep(description = "response should have value matches with {regEx} at {jsonpath}")
+	public static void responseShouldHaveValueMatchesWith(String regEx, String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		assertThat(String.valueOf(actual).matches(regEx), Matchers.equalTo(true));
+	}
+
+	/**
+	 * This method validates value of jsonpath is not equal to expected value
+	 * <p>
+	 * Example:
+	 * </p>
+	 * <code>
+	 * response should not have value 'admin' at 'user.username'
+	 * </code>
+	 * <p />
+	 * 
+	 * @param value
+	 *            : expected value
+	 * @param path
+	 *            : jsonpath
+	 */
+	@QAFTestStep(description = "response should not have value {expectedvalue} at {jsonpath}")
+	public static void responseShouldNotHaveValue(Object expectedValue, String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		assertThat(actual, Matchers.not(expectedValue));
+	}
+
+	/**
+	 * 
+	 * @param jsonpath
+	 * @return
+	 */
+	private static String getPath(String jsonpath) {
+		if (!jsonpath.startsWith("$"))
+			jsonpath = "$." + jsonpath;
+		return jsonpath;
+	}
 }
