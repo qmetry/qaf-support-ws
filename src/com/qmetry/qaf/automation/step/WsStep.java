@@ -1,24 +1,30 @@
 /*******************************************************************************
-  QMetry Automation Framework provides a powerful and versatile platform to author 
-  Automated Test Cases in Behavior Driven, Keyword Driven or Code Driven approach
-                 
-  Copyright 2016 Infostretch Corporation
- 
-  This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
- 
-  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- 
-  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-  OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
-  OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
- 
-  You should have received a copy of the GNU General Public License along with this program in the name of LICENSE.txt in the root folder of the distribution. If not, see https://opensource.org/licenses/gpl-3.0.html
- 
-  See the NOTICE.TXT file in root folder of this source files distribution 
-  for additional information regarding copyright ownership and licenses
-  of other open source software / files used by QMetry Automation Framework.
- 
-  For any inquiry or need additional information, please contact support-qaf@infostretch.com
+ * QMetry Automation Framework provides a powerful and versatile platform to
+ * author
+ * Automated Test Cases in Behavior Driven, Keyword Driven or Code Driven
+ * approach
+ * Copyright 2016 Infostretch Corporation
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE
+ * You should have received a copy of the GNU General Public License along with
+ * this program in the name of LICENSE.txt in the root folder of the
+ * distribution. If not, see https://opensource.org/licenses/gpl-3.0.html
+ * See the NOTICE.TXT file in root folder of this source files distribution
+ * for additional information regarding copyright ownership and licenses
+ * of other open source software / files used by QMetry Automation Framework.
+ * For any inquiry or need additional information, please contact
+ * support-qaf@infostretch.com
  *******************************************************************************/
 
 package com.qmetry.qaf.automation.step;
@@ -236,17 +242,18 @@ public final class WsStep {
 		assertThat(the(new RestTestBase().getResponse().getMessageBody()),
 				hasXPath(xpath));
 	}
-	
+
 	/**
 	 * This method request for the given parameters
 	 * 
-	 * @param requset map
+	 * @param requset
+	 *            map
 	 */
 	@QAFTestStep(description = "user requests : {0}")
 	public static void userRequests(Map<String, String> requset) {
 		RestRequestBean bean = new RestRequestBean();
 		bean.fillData(requset);
-		RESTClient.doExecute(bean);
+		RESTClient.request(bean);
 	}
 
 	/**
@@ -260,16 +267,19 @@ public final class WsStep {
 	 * response should have header 'Content-Type'<br/>
 	 * </code>
 	 * <br/>
+	 * 
 	 * @param xpath
 	 *            : header to be verified in respose
 	 */
 	@QAFTestStep(description = "response should have header {0}")
 	public static void responseShouldHaveHeader(String header) {
-		assertThat(new RestTestBase().getResponse().getHeaders(), Matchers.hasKey(header));
+		assertThat(new RestTestBase().getResponse().getHeaders(),
+				Matchers.hasKey(header));
 	}
 
 	/**
-	 * This method check given header with specific value present in response of web service
+	 * This method check given header with specific value present in response of
+	 * web service
 	 * <p>
 	 * Example:
 	 * <p>
@@ -279,14 +289,16 @@ public final class WsStep {
 	 * response should have header 'Content-Type' with value 'application/json'<br/>
 	 * </code>
 	 * <br/>
+	 * 
 	 * @param header
-	 * 		: header to be present in respose
+	 *            : header to be present in respose
 	 * @param value
-	 * 		: value to be verified for header
+	 *            : value to be verified for header
 	 */
 	@QAFTestStep(description = "response should have header {0} with value {1}")
 	public static void responseShouldHaveHeaderWithValue(String header, String value) {
-		assertThat(new RestTestBase().getResponse().getHeaders(), hasEntry(equalTo(header), Matchers.hasItem(value)));
+		assertThat(new RestTestBase().getResponse().getHeaders(),
+				hasEntry(equalTo(header), Matchers.hasItem(value)));
 	}
 
 	/**
@@ -298,14 +310,16 @@ public final class WsStep {
 	 * response should have key 'user.username' with value 'admin'
 	 * </code>
 	 * <p />
+	 * 
 	 * @param path
-	 * 		: jsonpath
+	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should have {jsonpath}")
 	public static void responseShouldHaveJsonPath(String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		assertThat("Response Body has " + path, hasJsonPath(new RestTestBase().getResponse().getMessageBody(), path),
+		assertThat("Response Body has " + path,
+				hasJsonPath(new RestTestBase().getResponse().getMessageBody(), path),
 				Matchers.equalTo(true));
 	}
 
@@ -318,15 +332,17 @@ public final class WsStep {
 	 * response should not have 'user.username'
 	 * </code>
 	 * <p />
+	 * 
 	 * @param path
-	 * 		: jsonpath
+	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should not have {jsonpath}")
 	public static void responseShouldNotHaveJsonPath(String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
 		assertThat("Response Body has not " + path,
-				hasJsonPath(new RestTestBase().getResponse().getMessageBody(), path), Matchers.equalTo(false));
+				hasJsonPath(new RestTestBase().getResponse().getMessageBody(), path),
+				Matchers.equalTo(false));
 	}
 
 	/**
@@ -338,21 +354,24 @@ public final class WsStep {
 	 * response should have 'admin' at 'user.username'
 	 * </code>
 	 * <p />
+	 * 
 	 * @param expectedValue
-	 * 		: expected value
+	 *            : expected value
 	 * @param path
-	 * 		: jsonpath
+	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should have {expectedvalue} at {jsonpath}")
 	public static void responseShouldHaveKeyWithValue(Object expectedValue, String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
+		Object actual =
+				JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
 		assertThat(actual, Matchers.equalTo(expectedValue));
 	}
 
 	/**
-	 * This method store value of given json path to {@link ConfigurationManager}
+	 * This method store value of given json path to
+	 * {@link ConfigurationManager}
 	 * <p>
 	 * Example:
 	 * </p>
@@ -360,16 +379,18 @@ public final class WsStep {
 	 * store response body 'user.username' to 'loginuser'
 	 * </code>
 	 * <p />
+	 * 
 	 * @param path
-	 * 		jsonpath
+	 *            jsonpath
 	 * @param variable
-	 * 		variable that can be use later
+	 *            variable that can be use later
 	 */
 	@QAFTestStep(description = "store response body {0} to {1}")
 	public static void storeResponseBodyto(String path, String variable) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		Object value = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
+		Object value =
+				JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
 		ConfigurationManager.getBundle().setProperty(variable, value);
 	}
 
@@ -382,16 +403,18 @@ public final class WsStep {
 	 * response should have value contains 'admin' at 'user.username'
 	 * </code>
 	 * <p />
+	 * 
 	 * @param value
-	 * 		: expected value
+	 *            : expected value
 	 * @param path
-	 * 		: jsonpath
+	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should have value contains {expectedvalue} at {jsonpath}")
 	public static void responseShouldHaveKeyAndValueContains(String value, String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
+		Object actual =
+				JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
 		assertThat(String.valueOf(actual), Matchers.containsString(value));
 	}
 
@@ -404,10 +427,11 @@ public final class WsStep {
 	 * store response header 'X-Auth-token' to 'token'
 	 * </code>
 	 * <p />
+	 * 
 	 * @param header
-	 * 		header
+	 *            header
 	 * @param property
-	 * 		variable that can be use later
+	 *            variable that can be use later
 	 */
 	@QAFTestStep(description = "store response header {0} to {1}")
 	public static void storeResponseHeaderTo(String header, String property) {
@@ -428,9 +452,10 @@ public final class WsStep {
 		}
 		return true;
 	}
-	
+
 	/**
-	 * This method validates that value at jsonpath should be less than expectedvalue
+	 * This method validates that value at jsonpath should be less than
+	 * expectedvalue
 	 * <p>
 	 * Example:
 	 * </p>
@@ -446,12 +471,15 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should be less than {expectedvalue} at {jsonpath}")
 	public static void responseShouldLessThan(double expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
-		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.lessThan(expectedValue));
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)),
+				Matchers.lessThan(expectedValue));
 	}
 
 	/**
-	 * This method validates that value at jsonpath should be less than or equal to expectedvalue
+	 * This method validates that value at jsonpath should be less than or equal
+	 * to expectedvalue
 	 * <p>
 	 * Example:
 	 * </p>
@@ -466,13 +494,17 @@ public final class WsStep {
 	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should be less than or equals to {expectedvalue} at {jsonpath}")
-	public static void responseShouldLessThanOrEqualsTo(double expectedValue, String path) {
-		Object actual = JsonPath.read(new	 RestTestBase().getResponse().getMessageBody(), getPath(path));
-		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.lessThanOrEqualTo(expectedValue));
+	public static void responseShouldLessThanOrEqualsTo(double expectedValue,
+			String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)),
+				Matchers.lessThanOrEqualTo(expectedValue));
 	}
 
 	/**
-	 * This method validates that value at jsonpath should be greater than expectedvalue
+	 * This method validates that value at jsonpath should be greater than
+	 * expectedvalue
 	 * <p>
 	 * Example:
 	 * </p>
@@ -488,12 +520,15 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should be greater than {expectedvalue} at {jsonpath}")
 	public static void responseShouldGreaterThan(double expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
-		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.greaterThan(expectedValue));
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)),
+				Matchers.greaterThan(expectedValue));
 	}
 
 	/**
-	 * This method validates that value at jsonpath should be greater than or equal to expectedvalue
+	 * This method validates that value at jsonpath should be greater than or
+	 * equal to expectedvalue
 	 * <p>
 	 * Example:
 	 * </p>
@@ -508,13 +543,17 @@ public final class WsStep {
 	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should be greater than or equals to {expectedvalue} at {jsonpath}")
-	public static void responseShouldGreaterThanOrEqualsTo(double expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
-		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.greaterThanOrEqualTo(expectedValue));
+	public static void responseShouldGreaterThanOrEqualsTo(double expectedValue,
+			String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)),
+				Matchers.greaterThanOrEqualTo(expectedValue));
 	}
 
 	/**
-	 * This method validates value at jsonpath equals to expected value with ignoring case or not
+	 * This method validates value at jsonpath equals to expected value with
+	 * ignoring case or not
 	 * <p>
 	 * Example:
 	 * </p>
@@ -529,13 +568,16 @@ public final class WsStep {
 	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should have value ignoring case {expectedvalue} at {jsonpath}")
-	public static void responseShouldHaveValueIgnoringCase(String expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+	public static void responseShouldHaveValueIgnoringCase(String expectedValue,
+			String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
 		assertThat(String.valueOf(actual), Matchers.equalToIgnoringCase(expectedValue));
 	}
 
 	/**
-	 * This method validates value at jsonpath contains expected value with ignoring case or not
+	 * This method validates value at jsonpath contains expected value with
+	 * ignoring case or not
 	 * <p>
 	 * Example:
 	 * </p>
@@ -550,9 +592,12 @@ public final class WsStep {
 	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should have value contains ignoring case {expectedvalue} at {jsonpath}")
-	public static void responseShouldHaveValueContainsIgnoringCase(String expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
-		assertThat(String.valueOf(actual).toUpperCase(), Matchers.containsString(expectedValue.toUpperCase()));
+	public static void responseShouldHaveValueContainsIgnoringCase(String expectedValue,
+			String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
+		assertThat(String.valueOf(actual).toUpperCase(),
+				Matchers.containsString(expectedValue.toUpperCase()));
 	}
 
 	/**
@@ -572,7 +617,8 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should have value matches with {regEx} at {jsonpath}")
 	public static void responseShouldHaveValueMatchesWith(String regEx, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
 		assertThat(String.valueOf(actual).matches(regEx), Matchers.equalTo(true));
 	}
 
@@ -593,12 +639,12 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should not have value {expectedvalue} at {jsonpath}")
 	public static void responseShouldNotHaveValue(Object expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
 		assertThat(actual, Matchers.not(expectedValue));
 	}
 
 	/**
-	 * 
 	 * @param jsonpath
 	 * @return
 	 */
@@ -607,5 +653,5 @@ public final class WsStep {
 			jsonpath = "$." + jsonpath;
 		return jsonpath;
 	}
-	
+
 }
