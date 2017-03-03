@@ -31,6 +31,7 @@ package com.qmetry.qaf.automation.rest;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.gson.annotations.SerializedName;
 import com.qmetry.qaf.automation.data.BaseDataBean;
 import com.qmetry.qaf.automation.keys.ApplicationProperties;
 import com.qmetry.qaf.automation.util.StringUtil;
@@ -42,12 +43,14 @@ public class RestRequestBean extends BaseDataBean {
 
 	private String method;
 	private String baseUrl;
-	private String endpoint;
+	private String endPoint;
 	private Map<String, Object> headers = new HashMap<String, Object>();
 	private String[] accept = {};
 	private String schema;
 	private String body;
+	@SerializedName("query-parameters")
 	private Map<String, Object> queryParameters = new HashMap<String, Object>();
+	@SerializedName("form-parameters")
 	private Map<String, Object> formParameters = new HashMap<String, Object>();
 
 	public String getBaseUrl() {
@@ -91,12 +94,12 @@ public class RestRequestBean extends BaseDataBean {
 		this.queryParameters = parameters;
 	}
 
-	public String getEndpoint() {
-		return endpoint;
+	public String getEndPoint() {
+		return endPoint;
 	}
 
-	public void setEndpoint(String endpoint) {
-		this.endpoint = endpoint;
+	public void setEndPoint(String endpoint) {
+		this.endPoint = endpoint;
 	}
 
 	public String[] getAccept() {

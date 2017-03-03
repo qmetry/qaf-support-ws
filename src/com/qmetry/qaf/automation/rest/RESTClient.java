@@ -47,7 +47,7 @@ public class RESTClient {
 	// move to rest test-base
 	public static void request(RestRequestBean bean) {
 		WebResource resource =
-				new RestTestBase().getWebResource(bean.getBaseUrl(), bean.getEndpoint());
+				new RestTestBase().getWebResource(bean.getBaseUrl(), bean.getEndPoint());
 
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 
