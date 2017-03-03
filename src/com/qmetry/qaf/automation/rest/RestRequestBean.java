@@ -41,13 +41,13 @@ import com.qmetry.qaf.automation.util.StringUtil;
  */
 public class RestRequestBean extends BaseDataBean {
 
-	private String method;
-	private String baseUrl;
-	private String endPoint;
+	private String method = "GET";
+	private String baseUrl = "";
+	private String endPoint = "";
 	private Map<String, Object> headers = new HashMap<String, Object>();
 	private String[] accept = {};
-	private String schema;
-	private String body;
+	private String schema = "";;
+	private String body = "";;
 	@SerializedName("query-parameters")
 	private Map<String, Object> queryParameters = new HashMap<String, Object>();
 	@SerializedName("form-parameters")
