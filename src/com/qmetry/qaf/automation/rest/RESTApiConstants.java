@@ -33,5 +33,6 @@ public interface RESTApiConstants {
 	String method = "method";
 	String body = "body";
 	String query_parameters = "query-parameters";
+	String form_parameters = "form-parameters";
 	String headers = "headers";
 }

@@ -34,6 +34,7 @@ import java.util.Map;
 import com.google.gson.annotations.SerializedName;
 import com.qmetry.qaf.automation.data.BaseDataBean;
 import com.qmetry.qaf.automation.keys.ApplicationProperties;
+import com.qmetry.qaf.automation.util.JSONUtil;
 import com.qmetry.qaf.automation.util.StringUtil;
 
 /**
@@ -48,14 +49,11 @@ public class RestRequestBean extends BaseDataBean {
 	private String[] accept = {};
 	private String schema = "";;
 	private String body = "";;
-	@SerializedName("query-parameters")
 	private Map<String, Object> queryParameters = new HashMap<String, Object>();
-	@SerializedName("form-parameters")
 	private Map<String, Object> formParameters = new HashMap<String, Object>();
 
 	public String getBaseUrl() {
-		return StringUtil.isNotBlank(baseUrl) ? baseUrl
-				: ApplicationProperties.SELENIUM_BASE_URL.getStringVal("");
+		return StringUtil.isNotBlank(baseUrl) ? baseUrl : ApplicationProperties.SELENIUM_BASE_URL.getStringVal("");
 	}
 
 	public void setBaseUrl(String baseUrl) {
@@ -124,6 +122,14 @@ public class RestRequestBean extends BaseDataBean {
 
 	public void setFormParameters(Map<String, Object> formParameters) {
 		this.formParameters = formParameters;
+	}
+
+	@Override
+	public void fillData(Map<String, String> map) {
+		super.fillData(map);
+		setHeaders(JSONUtil.toMap(map.get(RESTApiConstants.headers)));
+		setQueryParameters(JSONUtil.toMap(map.get(RESTApiConstants.query_parameters)));
+		setFormParameters(JSONUtil.toMap(map.get(RESTApiConstants.form_parameters)));
 	}
 
 }

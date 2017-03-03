@@ -29,8 +29,11 @@
 
 package com.qmetry.qaf.automation.rest;
 
+import java.io.File;
+import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.qmetry.qaf.automation.util.StringUtil;
@@ -39,6 +42,8 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+import com.sun.jersey.multipart.FormDataMultiPart;
+import com.sun.jersey.multipart.file.FileDataBodyPart;
 
 /**
  * @author amit.bhoraniya
@@ -46,8 +51,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 public class RESTClient {
 	// move to rest test-base
 	public static void request(RestRequestBean bean) {
-		WebResource resource =
-				new RestTestBase().getWebResource(bean.getBaseUrl(), bean.getEndPoint());
+		WebResource resource = new RestTestBase().getWebResource(bean.getBaseUrl(), bean.getEndPoint());
 
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 
@@ -66,10 +70,38 @@ public class RESTClient {
 		}
 
 		if (StringUtil.isNotBlank(bean.getBody())) {
+			// if body then post only body
 			builder.method(bean.getMethod(), ClientResponse.class, bean.getBody());
+		} else if (isMultiPart(bean.getFormParameters())) {
+			// if contains file then upload as multipart
+			FormDataMultiPart multiPart = new FormDataMultiPart();
+			for (Entry<String, Object> entry : bean.getFormParameters().entrySet()) {
+				String value = String.valueOf(entry.getValue());
+				if (value.startsWith("file:")) {
+					multiPart.bodyPart(new FileDataBodyPart(entry.getKey(), new File(value.split(":", 2)[1])));
+				} else {
+					multiPart.field(entry.getKey(), value);
+				}
+			}
+			builder.type(MediaType.MULTIPART_FORM_DATA).method(bean.getMethod(), ClientResponse.class, multiPart);
 		} else {
-			builder.method(bean.getMethod(), ClientResponse.class);
+			// does not contain files
+			MultivaluedMap<String, String> formParam = new MultivaluedMapImpl();
+			for (Entry<String, Object> entry : bean.getFormParameters().entrySet()) {
+				formParam.add(entry.getKey(), String.valueOf(entry.getValue()));
+			}
+			builder.method(bean.getMethod(), ClientResponse.class, formParam);
 		}
+
+	}
+
+	private static boolean isMultiPart(Map<String, Object> formParameters) {
+		for (Entry<String, Object> params : formParameters.entrySet()) {
+			String value = String.valueOf(params.getValue()).trim();
+			if (value.startsWith("file:"))
+				return true;
+		}
+		return false;
 	}
 
 }
