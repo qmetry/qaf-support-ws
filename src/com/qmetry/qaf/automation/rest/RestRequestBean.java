@@ -28,6 +28,7 @@
  *******************************************************************************/
 package com.qmetry.qaf.automation.rest;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,16 +41,26 @@ import com.qmetry.qaf.automation.util.StringUtil;
 /**
  * @author chirag.jayswal
  */
-public class RestRequestBean extends BaseDataBean {
+public class RestRequestBean extends BaseDataBean implements Serializable {
 
 	private String method = "GET";
+
 	private String baseUrl = "";
+
 	private String endPoint = "";
+
 	private Map<String, Object> headers = new HashMap<String, Object>();
+
 	private String[] accept = {};
-	private String schema = "";;
-	private String body = "";;
+
+	private String schema = "";
+
+	private String body = "";
+
+	@SerializedName(value = RESTApiConstants.QUERY_PARAMETERS)
 	private Map<String, Object> queryParameters = new HashMap<String, Object>();
+
+	@SerializedName(value = RESTApiConstants.FORM_PARAMETERS)
 	private Map<String, Object> formParameters = new HashMap<String, Object>();
 
 	public String getBaseUrl() {
@@ -125,11 +136,19 @@ public class RestRequestBean extends BaseDataBean {
 	}
 
 	@Override
-	public void fillData(Map<String, String> map) {
+	public void fillData(Map map) {
 		super.fillData(map);
-		setHeaders(JSONUtil.toMap(map.get(RESTApiConstants.headers)));
-		setQueryParameters(JSONUtil.toMap(map.get(RESTApiConstants.query_parameters)));
-		setFormParameters(JSONUtil.toMap(map.get(RESTApiConstants.form_parameters)));
+		String sheaders = String.valueOf(map.get(RESTApiConstants.HEADERS));
+		if (JSONUtil.isValidJsonString(sheaders))
+			setHeaders(JSONUtil.toMap(sheaders));
+
+		String sQueryParams = String.valueOf(map.get(RESTApiConstants.QUERY_PARAMETERS));
+		if (JSONUtil.isValidGsonString(sQueryParams))
+			setQueryParameters(JSONUtil.toMap(sQueryParams));
+
+		String sformParams = String.valueOf(map.get(RESTApiConstants.FORM_PARAMETERS));
+		if (JSONUtil.isValidGsonString(sformParams))
+			setFormParameters(JSONUtil.toMap(sformParams));
 	}
 
 }

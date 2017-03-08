@@ -38,6 +38,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import com.qmetry.qaf.automation.util.StringUtil;
 import com.qmetry.qaf.automation.ws.rest.RestTestBase;
+import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
@@ -51,6 +52,7 @@ import com.sun.jersey.multipart.file.FileDataBodyPart;
 public class RESTClient {
 	// move to rest test-base
 	public static void request(RestRequestBean bean) {
+
 		WebResource resource = new RestTestBase().getWebResource(bean.getBaseUrl(), bean.getEndPoint());
 
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
@@ -90,7 +92,12 @@ public class RESTClient {
 			for (Entry<String, Object> entry : bean.getFormParameters().entrySet()) {
 				formParam.add(entry.getKey(), String.valueOf(entry.getValue()));
 			}
-			builder.method(bean.getMethod(), ClientResponse.class, formParam);
+			if (formParam.isEmpty()) {
+				builder.method(bean.getMethod(), ClientResponse.class);
+			} else {
+				builder.method(bean.getMethod(), ClientResponse.class, formParam);
+			}
+
 		}
 
 	}

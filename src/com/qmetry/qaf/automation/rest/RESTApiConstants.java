@@ -28,11 +28,12 @@ package com.qmetry.qaf.automation.rest;
  *
  */
 public interface RESTApiConstants {
-	String baseurl = "baseurl";
-	String endpoint = "endpoint";
-	String method = "method";
-	String body = "body";
-	String query_parameters = "query-parameters";
-	String form_parameters = "form-parameters";
-	String headers = "headers";
+	String BASE_URL = "baseUrl";
+	String END_POINT = "endPoint";
+	String METHOD = "method";
+	String BODY = "body";
+	String SCHEMA = "schema";
+	String HEADERS = "headers";
+	String QUERY_PARAMETERS = "query-parameters";
+	String FORM_PARAMETERS = "form-parameters";
 }
