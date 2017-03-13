@@ -27,7 +27,7 @@ package com.qmetry.qaf.automation.rest;
  * @author amit.bhoraniya
  *
  */
-public interface RESTApiConstants {
+public interface WSCRepositoryConstants {
 	String BASE_URL = "baseUrl";
 	String END_POINT = "endPoint";
 	String METHOD = "method";

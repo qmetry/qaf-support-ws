@@ -43,6 +43,11 @@ import com.qmetry.qaf.automation.util.StringUtil;
  */
 public class RestRequestBean extends BaseDataBean implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 423394605353099602L;
+
 	private String method = "GET";
 
 	private String baseUrl = "";
@@ -57,10 +62,10 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 
 	private String body = "";
 
-	@SerializedName(value = RESTApiConstants.QUERY_PARAMETERS)
+	@SerializedName(value = WSCRepositoryConstants.QUERY_PARAMETERS)
 	private Map<String, Object> queryParameters = new HashMap<String, Object>();
 
-	@SerializedName(value = RESTApiConstants.FORM_PARAMETERS)
+	@SerializedName(value = WSCRepositoryConstants.FORM_PARAMETERS)
 	private Map<String, Object> formParameters = new HashMap<String, Object>();
 
 	public String getBaseUrl() {
@@ -136,17 +141,17 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 	}
 
 	@Override
-	public void fillData(Map map) {
+	public void fillData(Map<String, String> map) {
 		super.fillData(map);
-		String sheaders = String.valueOf(map.get(RESTApiConstants.HEADERS));
+		String sheaders = String.valueOf(map.get(WSCRepositoryConstants.HEADERS));
 		if (JSONUtil.isValidJsonString(sheaders))
 			setHeaders(JSONUtil.toMap(sheaders));
 
-		String sQueryParams = String.valueOf(map.get(RESTApiConstants.QUERY_PARAMETERS));
+		String sQueryParams = String.valueOf(map.get(WSCRepositoryConstants.QUERY_PARAMETERS));
 		if (JSONUtil.isValidGsonString(sQueryParams))
 			setQueryParameters(JSONUtil.toMap(sQueryParams));
 
-		String sformParams = String.valueOf(map.get(RESTApiConstants.FORM_PARAMETERS));
+		String sformParams = String.valueOf(map.get(WSCRepositoryConstants.FORM_PARAMETERS));
 		if (JSONUtil.isValidGsonString(sformParams))
 			setFormParameters(JSONUtil.toMap(sformParams));
 	}

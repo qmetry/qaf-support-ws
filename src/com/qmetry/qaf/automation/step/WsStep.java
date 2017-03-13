@@ -36,23 +36,31 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.xmlmatchers.transform.XmlConverters.the;
 import static org.xmlmatchers.xpath.HasXPath.hasXPath;
 
+import java.io.File;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.hamcrest.Matchers;
 
+import com.google.gson.Gson;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import com.qmetry.qaf.automation.core.AutomationError;
 import com.qmetry.qaf.automation.core.ConfigurationManager;
 import com.qmetry.qaf.automation.keys.ApplicationProperties;
-import com.qmetry.qaf.automation.rest.RESTClient;
 import com.qmetry.qaf.automation.rest.RestRequestBean;
+import com.qmetry.qaf.automation.util.StringUtil;
 import com.qmetry.qaf.automation.ws.rest.RestTestBase;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+import com.sun.jersey.multipart.FormDataMultiPart;
+import com.sun.jersey.multipart.file.FileDataBodyPart;
 
 /**
  * com.qmetry.qaf.automation.step.CommonStep.java
@@ -106,20 +114,6 @@ public final class WsStep {
 	@QAFTestStep(stepName = "requestForResourceWithParams", description = "user request for resource {resource} with {params}")
 	public static void requestForResource(String resource, Map<String, String> params) {
 		requestFor(resource, params);
-	}
-
-	private static void requestFor(String resource, Map<String, String> params) {
-		WebResource webResource = new RestTestBase().getWebResource(
-				getBundle().getString("ws.endurl", ApplicationProperties.SELENIUM_BASE_URL.getStringVal()), resource);
-		if (null != params && !params.isEmpty()) {
-			MultivaluedMap<String, String> mparams = new MultivaluedMapImpl();
-
-			for (String key : params.keySet()) {
-				mparams.add(key, params.get(key));
-			}
-			webResource = webResource.queryParams(mparams);
-		}
-		webResource.get(ClientResponse.class);
 	}
 
 	/**
@@ -241,14 +235,20 @@ public final class WsStep {
 	/**
 	 * This method request for the given parameters
 	 * 
-	 * @param requset
+	 * @param request
 	 *            map
 	 */
-	@QAFTestStep(description = "user requests : {0}")
-	public static void userRequests(Map<String, Object> requset) {
+	@QAFTestStep(description = "user requests {0}")
+	public static void userRequests(Map<String, Object> request) {
 		RestRequestBean bean = new RestRequestBean();
-		bean.fillData(requset);
-		RESTClient.request(bean);
+		try {
+			Gson gson = new Gson();
+			String json = gson.toJson(request);
+			bean = gson.fromJson(json, RestRequestBean.class);
+		} catch (Exception e) {
+			throw new AutomationError("Unable to populate request bean", e);
+		}
+		request(bean);
 	}
 
 	/**
@@ -373,7 +373,7 @@ public final class WsStep {
 	 * @param variable
 	 *            variable that can be use later
 	 */
-	@QAFTestStep(description = "store response body {0} to {1}")
+	@QAFTestStep(description = "store response body {0} (in)to {1}")
 	public static void storeResponseBodyto(String path, String variable) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
@@ -419,24 +419,10 @@ public final class WsStep {
 	 * @param property
 	 *            variable that can be use later
 	 */
-	@QAFTestStep(description = "store response header {0} to {1}")
+	@QAFTestStep(description = "store response header {0} (in)to {1}")
 	public static void storeResponseHeaderTo(String header, String property) {
 		ConfigurationManager.getBundle().setProperty(property,
 				new RestTestBase().getResponse().getHeaders().get(header));
-	}
-
-	/**
-	 * @param json
-	 * @param path
-	 * @return
-	 */
-	private static boolean hasJsonPath(String json, String path) {
-		try {
-			JsonPath.read(json, path);
-		} catch (PathNotFoundException exception) {
-			return false;
-		}
-		return true;
 	}
 
 	/**
@@ -613,6 +599,96 @@ public final class WsStep {
 		assertThat(actual, Matchers.not(expectedValue));
 	}
 
+	
+	// move to rest test-base
+	public static void request(RestRequestBean bean) {
+
+		WebResource resource = new RestTestBase().getWebResource(bean.getBaseUrl(), bean.getEndPoint());
+
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+
+		for (Entry<String, Object> entry : bean.getQueryParameters().entrySet()) {
+			queryParams.add(entry.getKey(), entry.getValue().toString());
+		}
+		resource = resource.queryParams(queryParams);
+
+		Builder builder = resource.getRequestBuilder();
+
+		for (Entry<String, Object> header : bean.getHeaders().entrySet()) {
+			if(header.getKey().equalsIgnoreCase("Accept")){
+				builder.accept((String)header.getValue());
+			}
+			builder.header(header.getKey(), header.getValue());
+		}
+
+		if (StringUtil.isNotBlank(bean.getBody())) {
+			// if body then post only body
+			builder.method(bean.getMethod(), ClientResponse.class, bean.getBody());
+		} else if (isMultiPart(bean.getFormParameters())) {
+			// if contains file then upload as multipart
+			FormDataMultiPart multiPart = new FormDataMultiPart();
+			for (Entry<String, Object> entry : bean.getFormParameters().entrySet()) {
+				String value = String.valueOf(entry.getValue());
+				if (value.startsWith("file:")) {
+					multiPart.bodyPart(new FileDataBodyPart(entry.getKey(), new File(value.split(":", 2)[1])));
+				} else {
+					multiPart.field(entry.getKey(), value);
+				}
+			}
+			builder.type(MediaType.MULTIPART_FORM_DATA).method(bean.getMethod(), ClientResponse.class, multiPart);
+		} else {
+			// does not contain files
+			MultivaluedMap<String, String> formParam = new MultivaluedMapImpl();
+			for (Entry<String, Object> entry : bean.getFormParameters().entrySet()) {
+				formParam.add(entry.getKey(), String.valueOf(entry.getValue()));
+			}
+			if (formParam.isEmpty()) {
+				builder.method(bean.getMethod(), ClientResponse.class);
+			} else {
+				builder.method(bean.getMethod(), ClientResponse.class, formParam);
+			}
+
+		}
+
+	}
+
+	private static void requestFor(String resource, Map<String, String> params) {
+		WebResource webResource = new RestTestBase().getWebResource(
+				getBundle().getString("ws.endurl", ApplicationProperties.SELENIUM_BASE_URL.getStringVal()), resource);
+		if (null != params && !params.isEmpty()) {
+			MultivaluedMap<String, String> mparams = new MultivaluedMapImpl();
+	
+			for (String key : params.keySet()) {
+				mparams.add(key, params.get(key));
+			}
+			webResource = webResource.queryParams(mparams);
+		}
+		webResource.get(ClientResponse.class);
+	}
+
+	/**
+	 * @param json
+	 * @param path
+	 * @return
+	 */
+	private static boolean hasJsonPath(String json, String path) {
+		try {
+			JsonPath.read(json, path);
+		} catch (PathNotFoundException exception) {
+			return false;
+		}
+		return true;
+	}
+
+	private static boolean isMultiPart(Map<String, Object> formParameters) {
+		for (Entry<String, Object> params : formParameters.entrySet()) {
+			String value = String.valueOf(params.getValue()).trim();
+			if (value.startsWith("file:"))
+				return true;
+		}
+		return false;
+	}
+	
 	/**
 	 * @param jsonpath
 	 * @return
