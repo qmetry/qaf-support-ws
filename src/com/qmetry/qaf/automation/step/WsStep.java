@@ -29,7 +29,6 @@
 
 package com.qmetry.qaf.automation.step;
 
-import static com.qmetry.qaf.automation.core.ConfigurationManager.getBundle;
 import static com.qmetry.qaf.automation.util.Validator.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
@@ -43,15 +42,18 @@ import java.util.Map.Entry;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.hamcrest.Matchers;
+import org.json.JSONObject;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.qmetry.qaf.automation.core.AutomationError;
 import com.qmetry.qaf.automation.core.ConfigurationManager;
-import com.qmetry.qaf.automation.keys.ApplicationProperties;
 import com.qmetry.qaf.automation.rest.RestRequestBean;
+import com.qmetry.qaf.automation.util.JSONUtil;
 import com.qmetry.qaf.automation.util.StringUtil;
 import com.qmetry.qaf.automation.ws.rest.RestTestBase;
 import com.sun.jersey.api.client.ClientResponse;
@@ -61,6 +63,7 @@ import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
+import static com.qmetry.qaf.automation.core.ConfigurationManager.getBundle;
 
 /**
  * com.qmetry.qaf.automation.step.CommonStep.java
@@ -68,99 +71,6 @@ import com.sun.jersey.multipart.file.FileDataBodyPart;
  * @author chirag
  */
 public final class WsStep {
-
-	/**
-	 * sets the service end point URL
-	 * <p>
-	 * Example:
-	 * <p>
-	 * BDD
-	 * </p>
-	 * <code>
-	 * service endpoint is 'http://feeds.feedburner.com/InfostretchMobileAndQaBlog'<br/>
-	 * </code>
-	 * <p>
-	 * KWD
-	 * </p>
-	 * 
-	 * @param endpoint
-	 *            : {0} : The URL to be set as end point
-	 */
-	@QAFTestStep(description = "service endpoint is {endpoint}")
-	public static void setServiceEndPoint(String endpoint) {
-		getBundle().setProperty("ws.endurl", endpoint);
-	}
-
-	/**
-	 * This method request for resource to the web service by passing the
-	 * required parameters.
-	 * <p>
-	 * Example:
-	 * <p>
-	 * BDD
-	 * </p>
-	 * <code>
-	 * user request for resource 'resource' with 'params'<br/>
-	 * </code>
-	 * <p>
-	 * KWD
-	 * </p>
-	 * 
-	 * @param resource
-	 *            : {0} : resource String
-	 * @param params
-	 *            : {1} : parameters
-	 */
-	@QAFTestStep(stepName = "requestForResourceWithParams", description = "user request for resource {resource} with {params}")
-	public static void requestForResource(String resource, Map<String, String> params) {
-		requestFor(resource, params);
-	}
-
-	/**
-	 * This method request for resource to the web service.
-	 * <p>
-	 * Example:
-	 * <p>
-	 * BDD
-	 * </p>
-	 * <code>
-	 * user request for resource 'Resource String'<br/>
-	 * </code>
-	 * <p>
-	 * KWD
-	 * </p>
-	 * 
-	 * @param resource
-	 *            : {0} : resource String
-	 */
-	@QAFTestStep(description = "user request for resource {resource}")
-	public static void requestForResource(String resource) {
-		requestFor(resource, null);
-	}
-
-	/**
-	 * This method post the content through the web service.
-	 * <p>
-	 * Example:
-	 * <p>
-	 * BDD
-	 * </p>
-	 * <code>
-	 * user post 'postContent' for resource 'resource'<br/>
-	 * </code>
-	 * <p>
-	 * KWD
-	 * </p>
-	 * 
-	 * @param content
-	 *            : {0} : content to be posted to service end point
-	 * @param resource
-	 *            : {1} : resource string
-	 */
-	@QAFTestStep(description = "user post {content} for resource {resource}")
-	public static void postContent(String content, String resource) {
-		new RestTestBase().getWebResource(getBundle().getString("ws.endurl"), resource).post(content);
-	}
 
 	/**
 	 * This method check for the response status of web service
@@ -236,14 +146,44 @@ public final class WsStep {
 	 * This method request for the given parameters
 	 * 
 	 * @param request
-	 *            map
+	 *            key or map
 	 */
 	@QAFTestStep(description = "user requests {0}")
-	public static void userRequests(Map<String, Object> request) {
+	public static void userRequests(Object request) {
 		RestRequestBean bean = new RestRequestBean();
+		if (request instanceof String) {
+			request = JSONUtil.toMap(getBundle().getString(String.valueOf(request), String.valueOf(request)));
+		}
 		try {
 			Gson gson = new Gson();
 			String json = gson.toJson(request);
+			json = getBundle().getSubstitutor().replace(json);
+			bean = gson.fromJson(json, RestRequestBean.class);
+		} catch (Exception e) {
+			throw new AutomationError("Unable to populate request bean", e);
+		}
+		request(bean);
+	}
+
+	/**
+	 * This method request for given parameters with given dataset
+	 * 
+	 * @param request
+	 *            key or map
+	 * @param data
+	 *            data set of key value pair
+	 */
+	@QAFTestStep(description = "user requests {request} with data {data}", stepName = "userRequestsWithData")
+	public static void userRequests(Object request, Map<String, Object> data) {
+		RestRequestBean bean = new RestRequestBean();
+		if (request instanceof String) {
+			request = JSONUtil.toMap(getBundle().getString(String.valueOf(request), String.valueOf(request)));
+		}
+		try {
+			Gson gson = new Gson();
+			String json = gson.toJson(request);
+			json = getBundle().getSubstitutor().replace(json);
+			json = StrSubstitutor.replace(json, data);
 			bean = gson.fromJson(json, RestRequestBean.class);
 		} catch (Exception e) {
 			throw new AutomationError("Unable to populate request bean", e);
@@ -378,7 +318,7 @@ public final class WsStep {
 		if (!path.startsWith("$"))
 			path = "$." + path;
 		Object value = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
-		ConfigurationManager.getBundle().setProperty(variable, value);
+		getBundle().setProperty(variable, value);
 	}
 
 	/**
@@ -421,8 +361,7 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "store response header {0} (in)to {1}")
 	public static void storeResponseHeaderTo(String header, String property) {
-		ConfigurationManager.getBundle().setProperty(property,
-				new RestTestBase().getResponse().getHeaders().get(header));
+		getBundle().setProperty(property, new RestTestBase().getResponse().getHeaders().get(header));
 	}
 
 	/**
@@ -599,7 +538,6 @@ public final class WsStep {
 		assertThat(actual, Matchers.not(expectedValue));
 	}
 
-	
 	// move to rest test-base
 	public static void request(RestRequestBean bean) {
 
@@ -615,8 +553,8 @@ public final class WsStep {
 		Builder builder = resource.getRequestBuilder();
 
 		for (Entry<String, Object> header : bean.getHeaders().entrySet()) {
-			if(header.getKey().equalsIgnoreCase("Accept")){
-				builder.accept((String)header.getValue());
+			if (header.getKey().equalsIgnoreCase("Accept")) {
+				builder.accept((String) header.getValue());
 			}
 			builder.header(header.getKey(), header.getValue());
 		}
@@ -652,20 +590,6 @@ public final class WsStep {
 
 	}
 
-	private static void requestFor(String resource, Map<String, String> params) {
-		WebResource webResource = new RestTestBase().getWebResource(
-				getBundle().getString("ws.endurl", ApplicationProperties.SELENIUM_BASE_URL.getStringVal()), resource);
-		if (null != params && !params.isEmpty()) {
-			MultivaluedMap<String, String> mparams = new MultivaluedMapImpl();
-	
-			for (String key : params.keySet()) {
-				mparams.add(key, params.get(key));
-			}
-			webResource = webResource.queryParams(mparams);
-		}
-		webResource.get(ClientResponse.class);
-	}
-
 	/**
 	 * @param json
 	 * @param path
@@ -688,7 +612,7 @@ public final class WsStep {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * @param jsonpath
 	 * @return
