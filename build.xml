@@ -225,4 +225,29 @@ For any inquiry or need additional information, please contact support-qaf@infos
 			<artifacts pattern="${dist.dir}/[artifact].[ext]" />
 		</ivy:publish>
 	</target>
+	
+	<target name="make-standalone-jar" depends="clean, compile" description="generate stand-alone jar">
+		<delete dir="dependencies" failonerror="false" />
+		<mkdir dir="dependencies" />
+		<!-- external libraries classpath, we don't need sources and javadoc -->
+		<ivy:retrieve pattern="dependencies/[artifact](-[classifier]).jar" conf="compile" />
+		<jar destfile="${dist.dir}/qaf-support-ws-standalone.jar" basedir="${bin.dir}" duplicate="preserve">
+			<zipgroupfileset dir="${lib.dir}" includes="*.jar" excludes="*sources.jar,*javadoc.jar"/>
+			<zipgroupfileset dir="dependencies" includes="*.jar" excludes="*sources.jar,*javadoc.jar"/>
+			<metainf dir="." includes="LICENSE.txt,NOTICE.txt" />
+			<manifest>
+				<attribute name="Vendor" value="Infostretch Corp." />
+				<attribute name="Built-By" value="${user.name}" />
+
+				<section name="Build-Info">
+					<attribute name="qaf-Build-Time" value="${build.timestamp}" />
+					<!-- Information about the program itself -->
+					<attribute name="qaf-Version" value="${version-num}" />
+					<attribute name="qaf-Revision" value="${build-num}" />
+					<attribute name="qaf-Type" value="support-ws" />
+				</section>
+			</manifest>
+			<metainf dir="${src.dir}" includes="**/aop.xml" />
+		</jar>
+	</target>
 </project>
