@@ -11,8 +11,8 @@
  3. Create web-service call repository having all your calls in following format in `.wsc` or `.properties` file
     ``` properties
     #format
-    #my.ws.call = {'headers':<json map of key-val pair>,'endpoint':'/myservice-endpoint','baseurl':'${env.baseurl}','method':'<method GET|POST|PUT|DELETE>','query-parameters':<json map of key-val pair>,'form-parameters':<json map of key-val pair>,'body':'<request-body>'}
-    get.sample.call={'headers':{},'endpoint':'/myservice-endpoint','baseurl':'${env.baseurl}','method':'GET','query-parameters':{'param1':'val1','param2':'val2'},'form-parameters':{},'body':''}
+    #my.ws.call = {'headers':<json map of key-val pair>,'endpoint':'/myservice-endPoint','baseUrl':'${env.baseurl}','method':'<method GET|POST|PUT|DELETE>','query-parameters':<json map of key-val pair>,'form-parameters':<json map of key-val pair>,'body':'<request-body>'}
+    get.sample.call={'headers':{},'endPoint':'/myservice-endpoint','baseUrl':'${env.baseurl}','method':'GET','query-parameters':{'param1':'val1','param2':'val2'},'form-parameters':{},'body':''}
     
     
     ```
