@@ -29,6 +29,7 @@
 
 package com.qmetry.qaf.automation.step;
 
+import static com.qmetry.qaf.automation.core.ConfigurationManager.getBundle;
 import static com.qmetry.qaf.automation.util.Validator.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
@@ -36,24 +37,33 @@ import static org.xmlmatchers.transform.XmlConverters.the;
 import static org.xmlmatchers.xpath.HasXPath.hasXPath;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.hamcrest.Matchers;
-import org.json.JSONObject;
 
+import com.github.fge.jackson.JsonLoader;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.ProcessingMessage;
+import com.github.fge.jsonschema.core.report.ProcessingReport;
+import com.github.fge.jsonschema.main.JsonSchema;
+import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.qmetry.qaf.automation.core.AutomationError;
 import com.qmetry.qaf.automation.core.ConfigurationManager;
+import com.qmetry.qaf.automation.core.MessageTypes;
 import com.qmetry.qaf.automation.rest.RestRequestBean;
+import com.qmetry.qaf.automation.rest.WSCRepositoryConstants;
 import com.qmetry.qaf.automation.util.JSONUtil;
+import com.qmetry.qaf.automation.util.Reporter;
 import com.qmetry.qaf.automation.util.StringUtil;
 import com.qmetry.qaf.automation.ws.rest.RestTestBase;
 import com.sun.jersey.api.client.ClientResponse;
@@ -63,7 +73,6 @@ import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
-import static com.qmetry.qaf.automation.core.ConfigurationManager.getBundle;
 
 /**
  * com.qmetry.qaf.automation.step.CommonStep.java
@@ -116,7 +125,8 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should have status code {statusCode}")
 	public static void responseShouldHaveStatusCode(int statusCode) {
-		assertThat("Response Status", new RestTestBase().getResponse().getStatus().getStatusCode(),
+		assertThat("Response Status",
+				new RestTestBase().getResponse().getStatus().getStatusCode(),
 				Matchers.equalTo(statusCode));
 	}
 
@@ -139,7 +149,8 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should have xpath {xpath}")
 	public static void responseShouldHaveXpath(String xpath) {
-		assertThat(the(new RestTestBase().getResponse().getMessageBody()), hasXPath(xpath));
+		assertThat(the(new RestTestBase().getResponse().getMessageBody()),
+				hasXPath(xpath));
 	}
 
 	/**
@@ -152,7 +163,8 @@ public final class WsStep {
 	public static void userRequests(Object request) {
 		RestRequestBean bean = new RestRequestBean();
 		if (request instanceof String) {
-			request = JSONUtil.toMap(getBundle().getString(String.valueOf(request), String.valueOf(request)));
+			request = JSONUtil.toMap(getBundle().getString(String.valueOf(request),
+					String.valueOf(request)));
 		}
 		try {
 			Gson gson = new Gson();
@@ -177,7 +189,8 @@ public final class WsStep {
 	public static void userRequests(Object request, Map<String, Object> data) {
 		RestRequestBean bean = new RestRequestBean();
 		if (request instanceof String) {
-			request = JSONUtil.toMap(getBundle().getString(String.valueOf(request), String.valueOf(request)));
+			request = JSONUtil.toMap(getBundle().getString(String.valueOf(request),
+					String.valueOf(request)));
 		}
 		try {
 			Gson gson = new Gson();
@@ -207,7 +220,8 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should have header {0}")
 	public static void responseShouldHaveHeader(String header) {
-		assertThat(new RestTestBase().getResponse().getHeaders(), Matchers.hasKey(header));
+		assertThat(new RestTestBase().getResponse().getHeaders(),
+				Matchers.hasKey(header));
 	}
 
 	/**
@@ -229,7 +243,8 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should have header {0} with value {1}")
 	public static void responseShouldHaveHeaderWithValue(String header, String value) {
-		assertThat(new RestTestBase().getResponse().getHeaders(), hasEntry(equalTo(header), Matchers.hasItem(value)));
+		assertThat(new RestTestBase().getResponse().getHeaders(),
+				hasEntry(equalTo(header), Matchers.hasItem(value)));
 	}
 
 	/**
@@ -249,7 +264,8 @@ public final class WsStep {
 	public static void responseShouldHaveJsonPath(String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		assertThat("Response Body has " + path, hasJsonPath(new RestTestBase().getResponse().getMessageBody(), path),
+		assertThat("Response Body has " + path,
+				hasJsonPath(new RestTestBase().getResponse().getMessageBody(), path),
 				Matchers.equalTo(true));
 	}
 
@@ -271,7 +287,8 @@ public final class WsStep {
 		if (!path.startsWith("$"))
 			path = "$." + path;
 		assertThat("Response Body has not " + path,
-				hasJsonPath(new RestTestBase().getResponse().getMessageBody(), path), Matchers.equalTo(false));
+				hasJsonPath(new RestTestBase().getResponse().getMessageBody(), path),
+				Matchers.equalTo(false));
 	}
 
 	/**
@@ -293,7 +310,8 @@ public final class WsStep {
 	public static void responseShouldHaveKeyWithValue(Object expectedValue, String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
+		Object actual =
+				JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
 		assertThat(actual, Matchers.equalTo(expectedValue));
 	}
 
@@ -317,7 +335,8 @@ public final class WsStep {
 	public static void storeResponseBodyto(String path, String variable) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		Object value = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
+		Object value =
+				JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
 		getBundle().setProperty(variable, value);
 	}
 
@@ -340,7 +359,8 @@ public final class WsStep {
 	public static void responseShouldHaveKeyAndValueContains(String value, String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
+		Object actual =
+				JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
 		assertThat(String.valueOf(actual), Matchers.containsString(value));
 	}
 
@@ -361,7 +381,8 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "store response header {0} (in)to {1}")
 	public static void storeResponseHeaderTo(String header, String property) {
-		getBundle().setProperty(property, new RestTestBase().getResponse().getHeaders().get(header));
+		getBundle().setProperty(property,
+				new RestTestBase().getResponse().getHeaders().get(header));
 	}
 
 	/**
@@ -382,8 +403,10 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should be less than {expectedvalue} at {jsonpath}")
 	public static void responseShouldLessThan(double expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
-		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.lessThan(expectedValue));
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)),
+				Matchers.lessThan(expectedValue));
 	}
 
 	/**
@@ -403,9 +426,12 @@ public final class WsStep {
 	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should be less than or equals to {expectedvalue} at {jsonpath}")
-	public static void responseShouldLessThanOrEqualsTo(double expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
-		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.lessThanOrEqualTo(expectedValue));
+	public static void responseShouldLessThanOrEqualsTo(double expectedValue,
+			String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)),
+				Matchers.lessThanOrEqualTo(expectedValue));
 	}
 
 	/**
@@ -426,8 +452,10 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should be greater than {expectedvalue} at {jsonpath}")
 	public static void responseShouldGreaterThan(double expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
-		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.greaterThan(expectedValue));
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)),
+				Matchers.greaterThan(expectedValue));
 	}
 
 	/**
@@ -447,9 +475,12 @@ public final class WsStep {
 	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should be greater than or equals to {expectedvalue} at {jsonpath}")
-	public static void responseShouldGreaterThanOrEqualsTo(double expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
-		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.greaterThanOrEqualTo(expectedValue));
+	public static void responseShouldGreaterThanOrEqualsTo(double expectedValue,
+			String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)),
+				Matchers.greaterThanOrEqualTo(expectedValue));
 	}
 
 	/**
@@ -469,8 +500,10 @@ public final class WsStep {
 	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should have value ignoring case {expectedvalue} at {jsonpath}")
-	public static void responseShouldHaveValueIgnoringCase(String expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+	public static void responseShouldHaveValueIgnoringCase(String expectedValue,
+			String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
 		assertThat(String.valueOf(actual), Matchers.equalToIgnoringCase(expectedValue));
 	}
 
@@ -491,9 +524,12 @@ public final class WsStep {
 	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should have value contains ignoring case {expectedvalue} at {jsonpath}")
-	public static void responseShouldHaveValueContainsIgnoringCase(String expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
-		assertThat(String.valueOf(actual).toUpperCase(), Matchers.containsString(expectedValue.toUpperCase()));
+	public static void responseShouldHaveValueContainsIgnoringCase(String expectedValue,
+			String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
+		assertThat(String.valueOf(actual).toUpperCase(),
+				Matchers.containsString(expectedValue.toUpperCase()));
 	}
 
 	/**
@@ -513,7 +549,8 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should have value matches with {regEx} at {jsonpath}")
 	public static void responseShouldHaveValueMatchesWith(String regEx, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
 		assertThat(String.valueOf(actual).matches(regEx), Matchers.equalTo(true));
 	}
 
@@ -534,14 +571,48 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should not have value {expectedvalue} at {jsonpath}")
 	public static void responseShouldNotHaveValue(Object expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
+				getPath(path));
 		assertThat(actual, Matchers.not(expectedValue));
 	}
 
+	@QAFTestStep(description = "verify response schema for {0}")
+	public static boolean verifyResponseSchema(String requestKey) {
+		ProcessingReport result = null;
+		try {
+			com.fasterxml.jackson.databind.JsonNode responseNode = JsonLoader
+					.fromString(new RestTestBase().getResponse().getMessageBody());
+			Map<String, Object> map = JSONUtil.toMap(
+					ConfigurationManager.getBundle().getString(requestKey, requestKey));
+			Object responseSchema = map.get(WSCRepositoryConstants.RESPONSE_SCHEMA);
+			if (responseSchema instanceof Map) {
+				responseSchema = new Gson().toJson(responseSchema);
+			} else {
+				File file = new File(responseSchema.toString());
+				if (file.exists())
+					responseSchema = FileUtils.readFileToString(file, "UTF-8");
+			}
+			com.fasterxml.jackson.databind.JsonNode schemaNode =
+					JsonLoader.fromString(String.valueOf(responseSchema));
+			JsonSchema schema = JsonSchemaFactory.byDefault().getJsonSchema(schemaNode);
+			result = schema.validate(responseNode);
+			if (!result.isSuccess()) {
+				for (ProcessingMessage processingMessage : result) {
+					Reporter.log(processingMessage.getMessage(), MessageTypes.Fail);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ProcessingException e) {
+			e.printStackTrace();
+		}
+		return result != null && result.isSuccess();
+	}
 	// move to rest test-base
 	public static void request(RestRequestBean bean) {
 
-		WebResource resource = new RestTestBase().getWebResource(bean.getBaseUrl(), bean.getEndPoint());
+		WebResource resource =
+				new RestTestBase().getWebResource(bean.getBaseUrl(), bean.getEndPoint());
 
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 
@@ -568,12 +639,14 @@ public final class WsStep {
 			for (Entry<String, Object> entry : bean.getFormParameters().entrySet()) {
 				String value = String.valueOf(entry.getValue());
 				if (value.startsWith("file:")) {
-					multiPart.bodyPart(new FileDataBodyPart(entry.getKey(), new File(value.split(":", 2)[1])));
+					multiPart.bodyPart(new FileDataBodyPart(entry.getKey(),
+							new File(value.split(":", 2)[1])));
 				} else {
 					multiPart.field(entry.getKey(), value);
 				}
 			}
-			builder.type(MediaType.MULTIPART_FORM_DATA).method(bean.getMethod(), ClientResponse.class, multiPart);
+			builder.type(MediaType.MULTIPART_FORM_DATA).method(bean.getMethod(),
+					ClientResponse.class, multiPart);
 		} else {
 			// does not contain files
 			MultivaluedMap<String, String> formParam = new MultivaluedMapImpl();
