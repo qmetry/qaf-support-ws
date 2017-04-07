@@ -39,9 +39,9 @@
 		<dependency org="com.jayway.jsonpath" name="json-path" rev="2.2.0" conf="compile->default"/>
 		<dependency org="com.jayway.jsonpath" name="json-path-assert"
 			rev="2.2.0" conf="compile->default"/>
-			<dependency org="com.github.fge" name="json-schema-validator" rev="latest.integration" conf="provided->default"/>
-	<!-- https://mvnrepository.com/artifact/com.github.fge/jackson-coreutils -->
-<dependency org="com.github.fge" name="jackson-coreutils" rev="1.8" conf="provided->default"/>
+		<dependency org="com.github.fge" name="json-schema-validator" rev="latest.integration" conf="provided->default"/>
+		<!-- https://mvnrepository.com/artifact/com.github.fge/jackson-coreutils -->
+		<dependency org="com.github.fge" name="jackson-coreutils" rev="latest.integration" conf="provided->default"/>
 	
 	</dependencies>
 </ivy-module>
