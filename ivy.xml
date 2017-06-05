@@ -41,8 +41,10 @@
 			rev="2.2.0" conf="compile->default"/>
 		<dependency org="com.github.fge" name="json-schema-validator" rev="latest.integration" conf="compile->default"/>
 		<dependency org="com.github.fge" name="jackson-coreutils" rev="latest.integration" conf="compile->default"/>
-
+		<dependency org="com.google.code.gson" name="gson" rev="latest.integration" conf="provided->default"/>
 		<dependency org="com.wealdtech.hawk" name="hawk-client-jersey" rev="1.2.3" conf="compile->default"/>
+		<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
+		<dependency org="com.googlecode.json-simple" name="json-simple" rev="1.1.1" conf="compile->default"/>
 	
 	</dependencies>
 </ivy-module>

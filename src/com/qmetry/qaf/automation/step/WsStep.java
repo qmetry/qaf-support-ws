@@ -630,9 +630,9 @@ public final class WsStep {
 			builder.header(header.getKey(), header.getValue());
 		}
 
-		if (StringUtil.isNotBlank(bean.getBody())) {
+		if (StringUtil.isNotBlank(String.valueOf(bean.getBody()))) {
 			// if body then post only body
-			builder.method(bean.getMethod(), ClientResponse.class, bean.getBody());
+			builder.method(bean.getMethod(), ClientResponse.class,String.valueOf(bean.getBody()));
 		} else if (isMultiPart(bean.getFormParameters())) {
 			// if contains file then upload as multipart
 			FormDataMultiPart multiPart = new FormDataMultiPart();
