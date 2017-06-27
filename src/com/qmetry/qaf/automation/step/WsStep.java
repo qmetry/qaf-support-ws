@@ -311,6 +311,7 @@ public final class WsStep {
 	public static void responseShouldHaveKeyWithValue(Object expectedValue, String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
+		Object actual =	JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
 		 if(Number.class.isAssignableFrom(actual.getClass())){
       			 assertThat(new BigDecimal(String.valueOf(actual)), Matchers.equalTo(new BigDecimal(String.valueOf(expectedValue))));
   		}else{
