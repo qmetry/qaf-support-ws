@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.math.BigDecimal;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -310,9 +311,11 @@ public final class WsStep {
 	public static void responseShouldHaveKeyWithValue(Object expectedValue, String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		Object actual =
-				JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
-		assertThat(actual, Matchers.equalTo(expectedValue));
+		 if(Number.class.isAssignableFrom(actual.getClass())){
+      			 assertThat(new BigDecimal(String.valueOf(actual)), Matchers.equalTo(new BigDecimal(String.valueOf(expectedValue))));
+  		}else{
+   			assertThat(actual, Matchers.equalTo((Object)expectedValue));
+ 		}
 	}
 
 	/**
