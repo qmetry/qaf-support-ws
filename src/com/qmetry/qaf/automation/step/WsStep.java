@@ -38,9 +38,12 @@ import static org.xmlmatchers.xpath.HasXPath.hasXPath;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.math.BigDecimal;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -67,8 +70,10 @@ import com.qmetry.qaf.automation.util.JSONUtil;
 import com.qmetry.qaf.automation.util.Reporter;
 import com.qmetry.qaf.automation.util.StringUtil;
 import com.qmetry.qaf.automation.ws.rest.RestTestBase;
+import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
@@ -227,7 +232,8 @@ public final class WsStep {
 
 	/**
 	 * This method check given header with specific value present in response of
-	 * web service
+	 * web
+	 * service
 	 * <p>
 	 * Example:
 	 * <p>
@@ -311,12 +317,14 @@ public final class WsStep {
 	public static void responseShouldHaveKeyWithValue(Object expectedValue, String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		Object actual =	JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
-		 if(Number.class.isAssignableFrom(actual.getClass())){
-      			 assertThat(new BigDecimal(String.valueOf(actual)), Matchers.equalTo(new BigDecimal(String.valueOf(expectedValue))));
-  		}else{
-   			assertThat(actual, Matchers.equalTo((Object)expectedValue));
- 		}
+		Object actual =
+				JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
+		if (Number.class.isAssignableFrom(actual.getClass())) {
+			assertThat(new BigDecimal(String.valueOf(actual)),
+					Matchers.equalTo(new BigDecimal(String.valueOf(expectedValue))));
+		} else {
+			assertThat(actual, Matchers.equalTo((Object) expectedValue));
+		}
 	}
 
 	/**
@@ -415,7 +423,8 @@ public final class WsStep {
 
 	/**
 	 * This method validates that value at jsonpath should be less than or equal
-	 * to expectedvalue
+	 * to
+	 * expectedvalue
 	 * <p>
 	 * Example:
 	 * </p>
@@ -464,7 +473,8 @@ public final class WsStep {
 
 	/**
 	 * This method validates that value at jsonpath should be greater than or
-	 * equal to expectedvalue
+	 * equal
+	 * to expectedvalue
 	 * <p>
 	 * Example:
 	 * </p>
@@ -513,7 +523,8 @@ public final class WsStep {
 
 	/**
 	 * This method validates value at jsonpath contains expected value with
-	 * ignoring case or not
+	 * ignoring
+	 * case or not
 	 * <p>
 	 * Example:
 	 * </p>
@@ -612,6 +623,7 @@ public final class WsStep {
 		}
 		return result != null && result.isSuccess();
 	}
+
 	// move to rest test-base
 	public static void request(RestRequestBean bean) {
 
@@ -636,21 +648,37 @@ public final class WsStep {
 
 		if (StringUtil.isNotBlank(String.valueOf(bean.getBody()))) {
 			// if body then post only body
-			builder.method(bean.getMethod(), ClientResponse.class,String.valueOf(bean.getBody()));
-		} else if (isMultiPart(bean.getFormParameters())) {
-			// if contains file then upload as multipart
+			builder.method(bean.getMethod(), ClientResponse.class,
+					String.valueOf(bean.getBody()));
+		} else if (isFileUpload(bean.getFormParameters())) {
+			String fileName = "";
+			// if contains file then upload as multipart/octet-stream as per
+			// Content-Type header
 			FormDataMultiPart multiPart = new FormDataMultiPart();
 			for (Entry<String, Object> entry : bean.getFormParameters().entrySet()) {
 				String value = String.valueOf(entry.getValue());
 				if (value.startsWith("file:")) {
-					multiPart.bodyPart(new FileDataBodyPart(entry.getKey(),
-							new File(value.split(":", 2)[1])));
+					fileName = value.split("file:", 2)[1];
+					multiPart.bodyPart(
+							new FileDataBodyPart(entry.getKey(), new File(fileName)));
 				} else {
 					multiPart.field(entry.getKey(), value);
 				}
 			}
-			builder.type(MediaType.MULTIPART_FORM_DATA).method(bean.getMethod(),
-					ClientResponse.class, multiPart);
+			if (bean.getHeaders().containsValue(MediaType.APPLICATION_OCTET_STREAM)) {
+				Path path = Paths.get(new File(fileName).getAbsolutePath());
+				try {
+					builder.type(MediaType.APPLICATION_OCTET_STREAM).method(
+							bean.getMethod(), ClientResponse.class,
+							Files.readAllBytes(path));
+				} catch (UniformInterfaceException | ClientHandlerException
+						| IOException e) {
+					e.printStackTrace();
+				}
+			} else {
+				builder.type(MediaType.MULTIPART_FORM_DATA).method(bean.getMethod(),
+						ClientResponse.class, multiPart);
+			}
 		} else {
 			// does not contain files
 			MultivaluedMap<String, String> formParam = new MultivaluedMapImpl();
@@ -681,7 +709,7 @@ public final class WsStep {
 		return true;
 	}
 
-	private static boolean isMultiPart(Map<String, Object> formParameters) {
+	private static boolean isFileUpload(Map<String, Object> formParameters) {
 		for (Entry<String, Object> params : formParameters.entrySet()) {
 			String value = String.valueOf(params.getValue()).trim();
 			if (value.startsWith("file:"))
