@@ -671,8 +671,11 @@ public final class WsStep {
 					builder.type(MediaType.APPLICATION_OCTET_STREAM).method(
 							bean.getMethod(), ClientResponse.class,
 							Files.readAllBytes(path));
-				} catch (UniformInterfaceException | ClientHandlerException
-						| IOException e) {
+				} catch (UniformInterfaceException e) {
+					e.printStackTrace();
+				} catch (ClientHandlerException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			} else {
