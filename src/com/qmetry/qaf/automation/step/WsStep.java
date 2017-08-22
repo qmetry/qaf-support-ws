@@ -60,7 +60,6 @@ import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.google.gson.Gson;
 import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.PathNotFoundException;
 import com.qmetry.qaf.automation.core.AutomationError;
 import com.qmetry.qaf.automation.core.ConfigurationManager;
 import com.qmetry.qaf.automation.core.MessageTypes;
@@ -706,7 +705,7 @@ public final class WsStep {
 	private static boolean hasJsonPath(String json, String path) {
 		try {
 			JsonPath.read(json, path);
-		} catch (PathNotFoundException exception) {
+		} catch (Exception exception) {
 			return false;
 		}
 		return true;
