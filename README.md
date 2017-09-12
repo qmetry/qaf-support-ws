@@ -34,3 +34,17 @@
  5. [Run your test](https://github.com/qmetry/qaf-step-by-step-tutorial/wiki/Exercise-3-Run-Your-First-Test)
  
  Here you can find [Example Projet](https://github.com/qmetry/WebServiceWithWebAutomation-Sample)
+ 
+ 
+ For Basic authentication, please set below properties.
+ 
+ ```
+ rest.client.basic.auth.username=<USERNAME>
+ rest.client.basic.auth.password=<PASSWORD>
+ ```
+ For Digest type authentication, please set below properties.
+ 
+ ```
+ rest.client.digest.auth.username=<USERNAME>
+ rest.client.digest.auth.password=<PASSWORD>
+ ```
