@@ -35,16 +35,21 @@
  
  Here you can find [Example Projet](https://github.com/qmetry/WebServiceWithWebAutomation-Sample)
  
+# Authorization
+
+ This dependency provides few well known Authentication support as well.
  
- For Basic authentication, please set below properties.
+1. For Basic authentication, please set below properties.
  
  ```
+ rest.client.impl=com.qmetry.qaf.automation.rest.client.BasicAuthRestClient
  rest.client.basic.auth.username=<USERNAME>
  rest.client.basic.auth.password=<PASSWORD>
  ```
- For Digest type authentication, please set below properties.
+2. For Digest type authentication, please set below properties.
  
  ```
+ rest.client.impl=com.qmetry.qaf.automation.rest.client.DigestAuthRestClient
  rest.client.digest.auth.username=<USERNAME>
  rest.client.digest.auth.password=<PASSWORD>
  ```
