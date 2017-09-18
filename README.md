@@ -1,6 +1,40 @@
 # qaf-support-ws
  Support project that provides ready to use steps for webservices 
- 
+ Features:
+
+ | Feature	|Attribute	|Details|
+ |---------|----------|--------|
+ |Test-Authoring	|	Industry Standard||
+ |	|Coded	|Java (TestNG, Junit)|
+ ||		BDD |	QAF-BDD, Gherkin||	
+ ||		Keyword driven	|XML,CSV,EXCEL||
+ | Step-Creation	|||
+ ||Java	|Y (any Java IDE can be used)|
+ ||BDD	| Ecipse QAF BDD editor, QAS|
+ ||Keyword driven|	QAS||
+ |IDE support	|	Y | Eclipse, IntelliJ, Net-beans, QAS||
+ |Data-driven		|Y |XML, CSV, JSON, DB, Excel|
+ |Reporting		|XML	|Industry Standard – TestNG and Junit|
+ ||HTML |TestNG, Junit, QAF(json) detailed reporting|
+ |Language-Suppor|Y|Java, Goovy|
+ |Programming|Y		Full programming control|
+ |Test-Data|||
+ ||parameter|Y|
+ ||Random|	Y|
+ ||Locale	|Y|
+ ||	Multiple Env support|	Y|
+ |Orchestration|Y|		UI and API test Orchestration|
+ |Test-Management|Y|		Supports easy integration with all test management tools|
+ |Build tools	|Industry Standard|	ANT+IVY, Maven,Gradle|
+ |Request validation|||
+ ||XML	|xml path validation|
+ ||JSON	|json path validation|
+ ||Schema|	Y|
+ |Run-configuration|Y|		TestNG XML (all features)|
+ |||Parallel execution|
+ |SOAP support	|	Out-of the box||
+ |REST support		|Y||
+
  To start with 
  1. [Create QAF Project](https://qmetry.github.io/qaf/latest/create_test_project.html)
  2. add dependency
