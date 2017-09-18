@@ -16,7 +16,7 @@
  |Data-driven		|Y |XML, CSV, JSON, DB, Excel|
  |Reporting		|XML	|Industry Standard – TestNG and Junit|
  ||HTML |TestNG, Junit, QAF(json) detailed reporting|
- |Language-Suppor|Y|Java, Goovy|
+ |Language-Support|Y|Java, Goovy|
  |Programming|Y		Full programming control|
  |Test-Data|||
  ||parameter|Y|
