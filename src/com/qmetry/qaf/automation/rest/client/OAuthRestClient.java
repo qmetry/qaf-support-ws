@@ -14,25 +14,7 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.ClientFilter;
 
 public class OAuthRestClient extends DefaultRestClient {
-	public static void main(String[] args) {
-		ConfigurationManager.getBundle().setProperty("rest.client.impl",
-				OAuthRestClient.class.getName());
-		ConfigurationManager.getBundle().setProperty(OAuthConstants.CLIENT_ID,
-				"FQ3lbFit1JtSOlc4rV32j6x08");
-		ConfigurationManager.getBundle().setProperty(OAuthConstants.CLIENT_SECRET,
-				"NO6kcptJ0tU16cH7GSqma9x46YZChJblLxCnri0yAtebPUeznl");
-		ConfigurationManager.getBundle().setProperty(
-				OAuthConstants.AUTHENTICATION_SERVER_URL,
-				"https://api.twitter.com/oauth2/token");
-		ConfigurationManager.getBundle().setProperty(OAuthConstants.GRANT_TYPE,
-				"client_credentials");
-		OAuthRestClient authRestClient = new OAuthRestClient();
-		WebResource resource =
-				authRestClient.getClient().resource("http://httpbin.org/ip");
-		String a = resource.get(String.class);
-		System.out.println(a);
-	}
-
+	
 	@Override
 	protected Client createClient() {
 		Client client = super.createClient();
