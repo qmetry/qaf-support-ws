@@ -39,6 +39,7 @@ import static org.xmlmatchers.xpath.HasXPath.hasXPath;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,14 +66,14 @@ import com.qmetry.qaf.automation.core.ConfigurationManager;
 import com.qmetry.qaf.automation.core.MessageTypes;
 import com.qmetry.qaf.automation.rest.RestRequestBean;
 import com.qmetry.qaf.automation.rest.WSCRepositoryConstants;
+import com.qmetry.qaf.automation.util.FileUtil;
 import com.qmetry.qaf.automation.util.JSONUtil;
 import com.qmetry.qaf.automation.util.Reporter;
+import com.qmetry.qaf.automation.util.StringMatcher;
 import com.qmetry.qaf.automation.util.StringUtil;
 import com.qmetry.qaf.automation.ws.rest.RestTestBase;
-import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
-import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
@@ -163,9 +164,10 @@ public final class WsStep {
 	 * 
 	 * @param request
 	 *            key or map
+	 * @return 
 	 */
 	@QAFTestStep(description = "user requests {0}")
-	public static void userRequests(Object request) {
+	public static ClientResponse userRequests(Object request) {
 		RestRequestBean bean = new RestRequestBean();
 		if (request instanceof String) {
 			request = JSONUtil.toMap(getBundle().getString(String.valueOf(request),
@@ -179,7 +181,7 @@ public final class WsStep {
 		} catch (Exception e) {
 			throw new AutomationError("Unable to populate request bean", e);
 		}
-		request(bean);
+		return request(bean);
 	}
 
 	/**
@@ -189,9 +191,10 @@ public final class WsStep {
 	 *            key or map
 	 * @param data
 	 *            data set of key value pair
+	 * @return 
 	 */
 	@QAFTestStep(description = "user requests {request} with data {data}", stepName = "userRequestsWithData")
-	public static void userRequests(Object request, Map<String, Object> data) {
+	public static ClientResponse userRequests(Object request, Map<String, Object> data) {
 		RestRequestBean bean = new RestRequestBean();
 		if (request instanceof String) {
 			request = JSONUtil.toMap(getBundle().getString(String.valueOf(request),
@@ -206,7 +209,7 @@ public final class WsStep {
 		} catch (Exception e) {
 			throw new AutomationError("Unable to populate request bean", e);
 		}
-		request(bean);
+		return request(bean);
 	}
 
 	/**
@@ -624,7 +627,7 @@ public final class WsStep {
 	}
 
 	// move to rest test-base
-	public static void request(RestRequestBean bean) {
+	public static ClientResponse request(RestRequestBean bean) {
 
 		WebResource resource =
 				new RestTestBase().getWebResource(bean.getBaseUrl(), bean.getEndPoint());
@@ -645,15 +648,28 @@ public final class WsStep {
 			builder.header(header.getKey(), header.getValue());
 		}
 
-		if (StringUtil.isNotBlank(String.valueOf(bean.getBody()))) {
+		String body = String.valueOf(bean.getBody());
+		if (StringUtil.isNotBlank(body)) {
 			// if body then post only body
-			builder.method(bean.getMethod(), ClientResponse.class,
-					String.valueOf(bean.getBody()));
+			
+			//is it points to file?
+			if(StringMatcher.startsWithIgnoringCase("file:").match(body)){
+				String file = body.split(":",2)[1];
+				try {
+					body = FileUtil.readFileToString(new File(file),StandardCharsets.UTF_8);
+				} catch (IOException e) {
+					throw new AutomationError("Unable to read file: " +file ,e);
+				}
+				//resolve parameters if any
+				body = getBundle().getSubstitutor().replace(body);
+			}
+			return builder.method(bean.getMethod(), ClientResponse.class,
+					String.valueOf(body));
 		} else if (isFileUpload(bean.getFormParameters())) {
 			String fileName = "";
 			// if contains file then upload as multipart/octet-stream as per
 			// Content-Type header
-			FormDataMultiPart multiPart = new FormDataMultiPart();
+			try(FormDataMultiPart multiPart = new FormDataMultiPart()){
 			for (Entry<String, Object> entry : bean.getFormParameters().entrySet()) {
 				String value = String.valueOf(entry.getValue());
 				if (value.startsWith("file:")) {
@@ -666,20 +682,15 @@ public final class WsStep {
 			}
 			if (bean.getHeaders().containsValue(MediaType.APPLICATION_OCTET_STREAM)) {
 				Path path = Paths.get(new File(fileName).getAbsolutePath());
-				try {
-					builder.type(MediaType.APPLICATION_OCTET_STREAM).method(
+					return builder.type(MediaType.APPLICATION_OCTET_STREAM).method(
 							bean.getMethod(), ClientResponse.class,
 							Files.readAllBytes(path));
-				} catch (UniformInterfaceException e) {
-					e.printStackTrace();
-				} catch (ClientHandlerException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
 			} else {
-				builder.type(MediaType.MULTIPART_FORM_DATA).method(bean.getMethod(),
+				return builder.type(MediaType.MULTIPART_FORM_DATA).method(bean.getMethod(),
 						ClientResponse.class, multiPart);
+			}
+			}catch (Exception e) {
+				throw new AutomationError(e);
 			}
 		} else {
 			// does not contain files
@@ -688,13 +699,11 @@ public final class WsStep {
 				formParam.add(entry.getKey(), String.valueOf(entry.getValue()));
 			}
 			if (formParam.isEmpty()) {
-				builder.method(bean.getMethod(), ClientResponse.class);
+				return builder.method(bean.getMethod(), ClientResponse.class);
 			} else {
-				builder.method(bean.getMethod(), ClientResponse.class, formParam);
+				return builder.method(bean.getMethod(), ClientResponse.class, formParam);
 			}
-
 		}
-
 	}
 
 	/**
