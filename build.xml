@@ -33,8 +33,8 @@ For any inquiry or need additional information, please contact support-qaf@infos
 	<property name="src.dir" value="${basedir}/src" />
 	<property name="meta.dir" value="${basedir}/META-INF" />
 	<property name="debuglevel" value="source,lines,vars" />
-	<property name="target" value="1.6" />
-	<property name="source" value="1.6" />
+	<property name="target" value="1.7" />
+	<property name="source" value="1.7" />
 	<property file="build.properties" />
 
 	<path id="build.classpath">
