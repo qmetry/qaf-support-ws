@@ -28,14 +28,28 @@
  *******************************************************************************/
 package com.qmetry.qaf.automation.rest;
 
+import static com.qmetry.qaf.automation.core.ConfigurationManager.getBundle;
+
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.HierarchicalConfiguration.Node;
+import org.apache.commons.lang.text.StrSubstitutor;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.google.gson.annotations.SerializedName;
+import com.qmetry.qaf.automation.core.AutomationError;
 import com.qmetry.qaf.automation.data.BaseDataBean;
 import com.qmetry.qaf.automation.keys.ApplicationProperties;
-import com.qmetry.qaf.automation.util.JSONUtil;
+import com.qmetry.qaf.automation.util.FileUtil;
+import com.qmetry.qaf.automation.util.StringMatcher;
 import com.qmetry.qaf.automation.util.StringUtil;
 
 /**
@@ -67,6 +81,12 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 
 	@SerializedName(value = WSCRepositoryConstants.FORM_PARAMETERS)
 	private Map<String, Object> formParameters = new HashMap<String, Object>();
+
+	private Map<String, Object> parameters = new HashMap<String, Object>();
+
+	private String reference = "";
+
+	// private final transient Gson gson = getGson();
 
 	public String getBaseUrl() {
 		return StringUtil.isNotBlank(baseUrl) ? baseUrl : ApplicationProperties.SELENIUM_BASE_URL.getStringVal("");
@@ -140,20 +160,170 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 		this.formParameters = formParameters;
 	}
 
-	@Override
-	public void fillData(Map<String, String> map) {
-		super.fillData(map);
-		String sheaders = String.valueOf(map.get(WSCRepositoryConstants.HEADERS));
-		if (JSONUtil.isValidJsonString(sheaders))
-			setHeaders(JSONUtil.toMap(sheaders));
-
-		String sQueryParams = String.valueOf(map.get(WSCRepositoryConstants.QUERY_PARAMETERS));
-		if (JSONUtil.isValidGsonString(sQueryParams))
-			setQueryParameters(JSONUtil.toMap(sQueryParams));
-
-		String sformParams = String.valueOf(map.get(WSCRepositoryConstants.FORM_PARAMETERS));
-		if (JSONUtil.isValidGsonString(sformParams))
-			setFormParameters(JSONUtil.toMap(sformParams));
+	public Map<String, Object> getParameters() {
+		return parameters;
 	}
 
+	public void setParameters(Map<String, Object> parameters) {
+		this.parameters = parameters;
+	}
+
+	public String getReference() {
+		return reference;
+	}
+
+	public void setReference(String reference) {
+		this.reference = reference;
+	}
+
+
+	/**
+	 * Priority for resolver is:
+	 * <ol>
+	 * <li>data provided in argument
+	 * <li>parameter in request call
+	 * <li>parameter in request reference
+	 * <li>configuration property
+	 * </ol>
+	 * 
+	 * @param data
+	 */
+	public void resolveParameters(Map<String, Object> data) {
+		JSONObject j = new JSONObject(this);
+		j.remove("reference");
+		String source = resolveParameters(j.toString(),data);
+		
+		fillFromJsonString(source);
+		
+		if (StringUtil.isNotBlank(body)) {
+			// is it points to file?
+			if (StringMatcher.startsWithIgnoringCase("file:").match(body)) {
+				String file = body.split(":", 2)[1];
+				try {
+					body = FileUtil.readFileToString(new File(file), StandardCharsets.UTF_8);
+					body = resolveParameters(body, data);
+				} catch (IOException e) {
+					throw new AutomationError("Unable to read file: " + file, e);
+				}
+			}
+		}
+	}
+
+	private String resolveParameters(String source, Map<String, Object> data){
+		if (null != data && !data.isEmpty()) {
+			source = StrSubstitutor.replace(source, data);
+		}
+		return source;
+	}
+	@Override
+	public void fillData(Object obj) {
+		String jsonstr;
+		if (obj instanceof String) {
+			jsonstr = (String) obj;
+			jsonstr = getBundle().getString(jsonstr, jsonstr);
+		}else{
+			jsonstr = new JSONObject(obj).toString();
+		}
+		fillFromJsonString(jsonstr);
+	}
+	@Override
+	public void fillFromConfig(String reqkey) {
+		Node node = getBundle().configurationAt(reqkey).getRoot();
+		if (!node.hasChildren()) {
+			fillFromJsonString(getBundle().getString(reqkey));
+		} else {
+			Configuration config = getBundle().subset(reqkey);
+			Iterator<?> keys = config.getKeys();
+			Map<String, String> map = new HashMap<String, String>();
+			while (keys.hasNext()) {
+				String dataKey = String.valueOf(keys.next());
+				String value = config.getString(dataKey);
+				map.put(dataKey, value);
+			}
+			fillData(map);
+		}
+	}
+
+	@Override
+	public void fillData(Map<String, String> map) {
+		if (map.containsKey(WSCRepositoryConstants.REFERENCE)) {
+			fillFromConfig(map.get(WSCRepositoryConstants.REFERENCE));
+		}
+
+		updateKey(map, WSCRepositoryConstants.FORM_PARAMETERS, "formParameters");
+		updateKey(map, WSCRepositoryConstants.QUERY_PARAMETERS, "queryParameters");
+
+		super.fillData(map);
+	}
+
+	/**
+	 * fill bean from json data.
+	 * 
+	 * @param jsonstr
+	 */
+	public void fillFromJsonString(String jsonstr) {
+		try {
+			JSONObject jsonObject = new JSONObject(jsonstr);
+			String[] keys = JSONObject.getNames(jsonObject);
+			Map<String, String> map = new HashMap<String, String>();
+			for (String key : keys) {
+				try {
+					map.put(key, jsonObject.getJSONObject(key).toString());
+				} catch (Exception e) {
+					map.put(key, jsonObject.get(key).toString());
+				}
+			}
+			fillData(map);
+		} catch (JSONException e) {
+			logger.error(e);
+		}
+
+	}
+
+	public void setFormParameters(String val) {
+		setMap(val, formParameters);
+	}
+
+	public void setQueryParameters(String val) {
+		setMap(val, queryParameters);
+	}
+
+	public void setHeaders(String val) {
+		setMap(val, headers);
+	}
+
+	public void setParameters(String val) {
+		setMap(val, parameters);
+	}
+
+	private void setMap(String val, Map<String, Object> map) {
+		if (StringUtil.isNotBlank(val)) {
+			JSONObject jsonObject = new JSONObject(val);
+			map.putAll(jsonObject.toMap());
+		}
+	}
+
+	private void updateKey(Map<String, String> map, String oldKey, String newKey) {
+		if (map.containsKey(oldKey)) {
+			String value = map.remove(oldKey);
+			map.put(newKey, value);
+		}
+	}
+
+	public static void main(String[] args) {
+		getBundle().setProperty("env.baseurl","http://localhost:8080");
+		getBundle().setProperty("get.sample.ref",
+				"{'headers':{},'endPoint':'/myservice-endpoint','baseUrl':'${env.baseurl}','method':'POST','query-parameters':{'param1':'${val1}','param2':'${val2}'},'form-parameters':{'a':'b','i':10},'body':'','parameters':{'val1':'abc','val2':'xyz'}}");
+
+		getBundle().setProperty("get.sample.call",
+				"{'reference':'get.sample.ref','parameters':{'val1':'abc123','val3':'xyz123'}}");
+		RestRequestBean r = new RestRequestBean();
+		r.fillData("get.sample.call");
+
+		System.out.println(r);
+
+		r.resolveParameters(null);
+		System.out.println(r);
+
+	}
 }

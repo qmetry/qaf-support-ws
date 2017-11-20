@@ -42,4 +42,6 @@ public interface WSCRepositoryConstants {
 	String QUERY_PARAMETERS = "query-parameters";
 	String FORM_PARAMETERS = "form-parameters";
 	Object RESPONSE_SCHEMA = "response-schema";
+	String REFERENCE = "reference";
+	String PARAMETERS = "parameters";
 }

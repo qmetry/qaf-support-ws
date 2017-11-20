@@ -50,7 +50,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.text.StrSubstitutor;
 import org.hamcrest.Matchers;
 
 import com.github.fge.jackson.JsonLoader;
@@ -131,8 +130,7 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should have status code {statusCode}")
 	public static void responseShouldHaveStatusCode(int statusCode) {
-		assertThat("Response Status",
-				new RestTestBase().getResponse().getStatus().getStatusCode(),
+		assertThat("Response Status", new RestTestBase().getResponse().getStatus().getStatusCode(),
 				Matchers.equalTo(statusCode));
 	}
 
@@ -155,8 +153,7 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should have xpath {xpath}")
 	public static void responseShouldHaveXpath(String xpath) {
-		assertThat(the(new RestTestBase().getResponse().getMessageBody()),
-				hasXPath(xpath));
+		assertThat(the(new RestTestBase().getResponse().getMessageBody()), hasXPath(xpath));
 	}
 
 	/**
@@ -164,23 +161,13 @@ public final class WsStep {
 	 * 
 	 * @param request
 	 *            key or map
-	 * @return 
+	 * @return
 	 */
 	@QAFTestStep(description = "user requests {0}")
 	public static ClientResponse userRequests(Object request) {
 		RestRequestBean bean = new RestRequestBean();
-		if (request instanceof String) {
-			request = JSONUtil.toMap(getBundle().getString(String.valueOf(request),
-					String.valueOf(request)));
-		}
-		try {
-			Gson gson = new Gson();
-			String json = gson.toJson(request);
-			json = getBundle().getSubstitutor().replace(json);
-			bean = gson.fromJson(json, RestRequestBean.class);
-		} catch (Exception e) {
-			throw new AutomationError("Unable to populate request bean", e);
-		}
+		bean.fillData(request);
+		bean.resolveParameters(null);
 		return request(bean);
 	}
 
@@ -191,24 +178,13 @@ public final class WsStep {
 	 *            key or map
 	 * @param data
 	 *            data set of key value pair
-	 * @return 
+	 * @return
 	 */
 	@QAFTestStep(description = "user requests {request} with data {data}", stepName = "userRequestsWithData")
 	public static ClientResponse userRequests(Object request, Map<String, Object> data) {
 		RestRequestBean bean = new RestRequestBean();
-		if (request instanceof String) {
-			request = JSONUtil.toMap(getBundle().getString(String.valueOf(request),
-					String.valueOf(request)));
-		}
-		try {
-			Gson gson = new Gson();
-			String json = gson.toJson(request);
-			json = getBundle().getSubstitutor().replace(json);
-			json = StrSubstitutor.replace(json, data);
-			bean = gson.fromJson(json, RestRequestBean.class);
-		} catch (Exception e) {
-			throw new AutomationError("Unable to populate request bean", e);
-		}
+		bean.fillData(request);
+		bean.resolveParameters(data);
 		return request(bean);
 	}
 
@@ -228,14 +204,12 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should have header {0}")
 	public static void responseShouldHaveHeader(String header) {
-		assertThat(new RestTestBase().getResponse().getHeaders(),
-				Matchers.hasKey(header));
+		assertThat(new RestTestBase().getResponse().getHeaders(), Matchers.hasKey(header));
 	}
 
 	/**
 	 * This method check given header with specific value present in response of
-	 * web
-	 * service
+	 * web service
 	 * <p>
 	 * Example:
 	 * <p>
@@ -252,8 +226,7 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should have header {0} with value {1}")
 	public static void responseShouldHaveHeaderWithValue(String header, String value) {
-		assertThat(new RestTestBase().getResponse().getHeaders(),
-				hasEntry(equalTo(header), Matchers.hasItem(value)));
+		assertThat(new RestTestBase().getResponse().getHeaders(), hasEntry(equalTo(header), Matchers.hasItem(value)));
 	}
 
 	/**
@@ -273,8 +246,7 @@ public final class WsStep {
 	public static void responseShouldHaveJsonPath(String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		assertThat("Response Body has " + path,
-				hasJsonPath(new RestTestBase().getResponse().getMessageBody(), path),
+		assertThat("Response Body has " + path, hasJsonPath(new RestTestBase().getResponse().getMessageBody(), path),
 				Matchers.equalTo(true));
 	}
 
@@ -296,8 +268,7 @@ public final class WsStep {
 		if (!path.startsWith("$"))
 			path = "$." + path;
 		assertThat("Response Body has not " + path,
-				hasJsonPath(new RestTestBase().getResponse().getMessageBody(), path),
-				Matchers.equalTo(false));
+				hasJsonPath(new RestTestBase().getResponse().getMessageBody(), path), Matchers.equalTo(false));
 	}
 
 	/**
@@ -319,8 +290,7 @@ public final class WsStep {
 	public static void responseShouldHaveKeyWithValue(Object expectedValue, String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		Object actual =
-				JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
 		if (Number.class.isAssignableFrom(actual.getClass())) {
 			assertThat(new BigDecimal(String.valueOf(actual)),
 					Matchers.equalTo(new BigDecimal(String.valueOf(expectedValue))));
@@ -349,8 +319,7 @@ public final class WsStep {
 	public static void storeResponseBodyto(String path, String variable) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		Object value =
-				JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
+		Object value = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
 		getBundle().setProperty(variable, value);
 	}
 
@@ -373,8 +342,7 @@ public final class WsStep {
 	public static void responseShouldHaveKeyAndValueContains(String value, String path) {
 		if (!path.startsWith("$"))
 			path = "$." + path;
-		Object actual =
-				JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
 		assertThat(String.valueOf(actual), Matchers.containsString(value));
 	}
 
@@ -395,8 +363,7 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "store response header {0} (in)to {1}")
 	public static void storeResponseHeaderTo(String header, String property) {
-		getBundle().setProperty(property,
-				new RestTestBase().getResponse().getHeaders().get(header));
+		getBundle().setProperty(property, new RestTestBase().getResponse().getHeaders().get(header));
 	}
 
 	/**
@@ -417,16 +384,13 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should be less than {expectedvalue} at {jsonpath}")
 	public static void responseShouldLessThan(double expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
-				getPath(path));
-		assertThat(Double.parseDouble(String.valueOf(actual)),
-				Matchers.lessThan(expectedValue));
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.lessThan(expectedValue));
 	}
 
 	/**
 	 * This method validates that value at jsonpath should be less than or equal
-	 * to
-	 * expectedvalue
+	 * to expectedvalue
 	 * <p>
 	 * Example:
 	 * </p>
@@ -441,12 +405,9 @@ public final class WsStep {
 	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should be less than or equals to {expectedvalue} at {jsonpath}")
-	public static void responseShouldLessThanOrEqualsTo(double expectedValue,
-			String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
-				getPath(path));
-		assertThat(Double.parseDouble(String.valueOf(actual)),
-				Matchers.lessThanOrEqualTo(expectedValue));
+	public static void responseShouldLessThanOrEqualsTo(double expectedValue, String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.lessThanOrEqualTo(expectedValue));
 	}
 
 	/**
@@ -467,16 +428,13 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should be greater than {expectedvalue} at {jsonpath}")
 	public static void responseShouldGreaterThan(double expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
-				getPath(path));
-		assertThat(Double.parseDouble(String.valueOf(actual)),
-				Matchers.greaterThan(expectedValue));
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.greaterThan(expectedValue));
 	}
 
 	/**
 	 * This method validates that value at jsonpath should be greater than or
-	 * equal
-	 * to expectedvalue
+	 * equal to expectedvalue
 	 * <p>
 	 * Example:
 	 * </p>
@@ -491,12 +449,9 @@ public final class WsStep {
 	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should be greater than or equals to {expectedvalue} at {jsonpath}")
-	public static void responseShouldGreaterThanOrEqualsTo(double expectedValue,
-			String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
-				getPath(path));
-		assertThat(Double.parseDouble(String.valueOf(actual)),
-				Matchers.greaterThanOrEqualTo(expectedValue));
+	public static void responseShouldGreaterThanOrEqualsTo(double expectedValue, String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.greaterThanOrEqualTo(expectedValue));
 	}
 
 	/**
@@ -516,17 +471,14 @@ public final class WsStep {
 	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should have value ignoring case {expectedvalue} at {jsonpath}")
-	public static void responseShouldHaveValueIgnoringCase(String expectedValue,
-			String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
-				getPath(path));
+	public static void responseShouldHaveValueIgnoringCase(String expectedValue, String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
 		assertThat(String.valueOf(actual), Matchers.equalToIgnoringCase(expectedValue));
 	}
 
 	/**
 	 * This method validates value at jsonpath contains expected value with
-	 * ignoring
-	 * case or not
+	 * ignoring case or not
 	 * <p>
 	 * Example:
 	 * </p>
@@ -541,12 +493,9 @@ public final class WsStep {
 	 *            : jsonpath
 	 */
 	@QAFTestStep(description = "response should have value contains ignoring case {expectedvalue} at {jsonpath}")
-	public static void responseShouldHaveValueContainsIgnoringCase(String expectedValue,
-			String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
-				getPath(path));
-		assertThat(String.valueOf(actual).toUpperCase(),
-				Matchers.containsString(expectedValue.toUpperCase()));
+	public static void responseShouldHaveValueContainsIgnoringCase(String expectedValue, String path) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
+		assertThat(String.valueOf(actual).toUpperCase(), Matchers.containsString(expectedValue.toUpperCase()));
 	}
 
 	/**
@@ -566,8 +515,7 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should have value matches with {regEx} at {jsonpath}")
 	public static void responseShouldHaveValueMatchesWith(String regEx, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
-				getPath(path));
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
 		assertThat(String.valueOf(actual).matches(regEx), Matchers.equalTo(true));
 	}
 
@@ -588,8 +536,7 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "response should not have value {expectedvalue} at {jsonpath}")
 	public static void responseShouldNotHaveValue(Object expectedValue, String path) {
-		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(),
-				getPath(path));
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
 		assertThat(actual, Matchers.not(expectedValue));
 	}
 
@@ -599,8 +546,8 @@ public final class WsStep {
 		try {
 			com.fasterxml.jackson.databind.JsonNode responseNode = JsonLoader
 					.fromString(new RestTestBase().getResponse().getMessageBody());
-			Map<String, Object> map = JSONUtil.toMap(
-					ConfigurationManager.getBundle().getString(requestKey, requestKey));
+			Map<String, Object> map = JSONUtil
+					.toMap(ConfigurationManager.getBundle().getString(requestKey, requestKey));
 			Object responseSchema = map.get(WSCRepositoryConstants.RESPONSE_SCHEMA);
 			if (responseSchema instanceof Map) {
 				responseSchema = new Gson().toJson(responseSchema);
@@ -609,8 +556,7 @@ public final class WsStep {
 				if (file.exists())
 					responseSchema = FileUtils.readFileToString(file, "UTF-8");
 			}
-			com.fasterxml.jackson.databind.JsonNode schemaNode =
-					JsonLoader.fromString(String.valueOf(responseSchema));
+			com.fasterxml.jackson.databind.JsonNode schemaNode = JsonLoader.fromString(String.valueOf(responseSchema));
 			JsonSchema schema = JsonSchemaFactory.byDefault().getJsonSchema(schemaNode);
 			result = schema.validate(responseNode);
 			if (!result.isSuccess()) {
@@ -629,8 +575,7 @@ public final class WsStep {
 	// move to rest test-base
 	public static ClientResponse request(RestRequestBean bean) {
 
-		WebResource resource =
-				new RestTestBase().getWebResource(bean.getBaseUrl(), bean.getEndPoint());
+		WebResource resource = new RestTestBase().getWebResource(bean.getBaseUrl(), bean.getEndPoint());
 
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 
@@ -651,45 +596,42 @@ public final class WsStep {
 		String body = String.valueOf(bean.getBody());
 		if (StringUtil.isNotBlank(body)) {
 			// if body then post only body
-			
-			//is it points to file?
-			if(StringMatcher.startsWithIgnoringCase("file:").match(body)){
-				String file = body.split(":",2)[1];
+
+			// is it points to file?
+			if (StringMatcher.startsWithIgnoringCase("file:").match(body)) {
+				String file = body.split(":", 2)[1];
 				try {
-					body = FileUtil.readFileToString(new File(file),StandardCharsets.UTF_8);
+					body = FileUtil.readFileToString(new File(file), StandardCharsets.UTF_8);
 				} catch (IOException e) {
-					throw new AutomationError("Unable to read file: " +file ,e);
+					throw new AutomationError("Unable to read file: " + file, e);
 				}
-				//resolve parameters if any
+				// resolve parameters if any
 				body = getBundle().getSubstitutor().replace(body);
 			}
-			return builder.method(bean.getMethod(), ClientResponse.class,
-					String.valueOf(body));
+			return builder.method(bean.getMethod(), ClientResponse.class, String.valueOf(body));
 		} else if (isFileUpload(bean.getFormParameters())) {
 			String fileName = "";
 			// if contains file then upload as multipart/octet-stream as per
 			// Content-Type header
-			try(FormDataMultiPart multiPart = new FormDataMultiPart()){
-			for (Entry<String, Object> entry : bean.getFormParameters().entrySet()) {
-				String value = String.valueOf(entry.getValue());
-				if (value.startsWith("file:")) {
-					fileName = value.split("file:", 2)[1];
-					multiPart.bodyPart(
-							new FileDataBodyPart(entry.getKey(), new File(fileName)));
-				} else {
-					multiPart.field(entry.getKey(), value);
+			try (FormDataMultiPart multiPart = new FormDataMultiPart()) {
+				for (Entry<String, Object> entry : bean.getFormParameters().entrySet()) {
+					String value = String.valueOf(entry.getValue());
+					if (value.startsWith("file:")) {
+						fileName = value.split("file:", 2)[1];
+						multiPart.bodyPart(new FileDataBodyPart(entry.getKey(), new File(fileName)));
+					} else {
+						multiPart.field(entry.getKey(), value);
+					}
 				}
-			}
-			if (bean.getHeaders().containsValue(MediaType.APPLICATION_OCTET_STREAM)) {
-				Path path = Paths.get(new File(fileName).getAbsolutePath());
-					return builder.type(MediaType.APPLICATION_OCTET_STREAM).method(
-							bean.getMethod(), ClientResponse.class,
-							Files.readAllBytes(path));
-			} else {
-				return builder.type(MediaType.MULTIPART_FORM_DATA).method(bean.getMethod(),
-						ClientResponse.class, multiPart);
-			}
-			}catch (Exception e) {
+				if (bean.getHeaders().containsValue(MediaType.APPLICATION_OCTET_STREAM)) {
+					Path path = Paths.get(new File(fileName).getAbsolutePath());
+					return builder.type(MediaType.APPLICATION_OCTET_STREAM).method(bean.getMethod(),
+							ClientResponse.class, Files.readAllBytes(path));
+				} else {
+					return builder.type(MediaType.MULTIPART_FORM_DATA).method(bean.getMethod(), ClientResponse.class,
+							multiPart);
+				}
+			} catch (Exception e) {
 				throw new AutomationError(e);
 			}
 		} else {
