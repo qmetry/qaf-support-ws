@@ -176,7 +176,6 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 		this.reference = reference;
 	}
 
-
 	/**
 	 * Priority for resolver is:
 	 * <ol>
@@ -191,10 +190,11 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 	public void resolveParameters(Map<String, Object> data) {
 		JSONObject j = new JSONObject(this);
 		j.remove("reference");
-		String source = resolveParameters(j.toString(),data);
-		
+		String source = resolveParameters(j.toString(), data);
+		source = resolveParameters(j.toString(), getParameters());
+
 		fillFromJsonString(source);
-		
+
 		if (StringUtil.isNotBlank(body)) {
 			// is it points to file?
 			if (StringMatcher.startsWithIgnoringCase("file:").match(body)) {
@@ -209,23 +209,32 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 		}
 	}
 
-	private String resolveParameters(String source, Map<String, Object> data){
+	private String resolveParameters(String source, Map<String, Object> data) {
 		if (null != data && !data.isEmpty()) {
 			source = StrSubstitutor.replace(source, data);
 		}
+		source = StrSubstitutor.replace(source, parameters);
+		source = getBundle().getSubstitutor().replace(source);
+
 		return source;
 	}
+
 	@Override
 	public void fillData(Object obj) {
-		String jsonstr;
-		if (obj instanceof String) {
-			jsonstr = (String) obj;
-			jsonstr = getBundle().getString(jsonstr, jsonstr);
-		}else{
-			jsonstr = new JSONObject(obj).toString();
+		try {
+			boolean isString = (obj instanceof String);
+			if (isString && getBundle().containsKey((String) obj)) {
+				fillFromConfig((String) obj);
+
+			} else {
+				String jsonStr = (isString ? (String) obj : new JSONObject(obj).toString());
+				fillFromJsonString(jsonStr);
+			}
+		} catch (Exception e) {
+			throw new AutomationError("Unable to populate request from" + obj, e);
 		}
-		fillFromJsonString(jsonstr);
 	}
+
 	@Override
 	public void fillFromConfig(String reqkey) {
 		Node node = getBundle().configurationAt(reqkey).getRoot();
@@ -275,7 +284,7 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 			}
 			fillData(map);
 		} catch (JSONException e) {
-			logger.error(e);
+			throw new AutomationError(jsonstr +" is not valid Json", e);
 		}
 
 	}
@@ -311,19 +320,18 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 	}
 
 	public static void main(String[] args) {
-		getBundle().setProperty("env.baseurl","http://localhost:8080");
+		getBundle().setProperty("env.baseurl", "http://localhost:8080");
 		getBundle().setProperty("get.sample.ref",
 				"{'headers':{},'endPoint':'/myservice-endpoint','baseUrl':'${env.baseurl}','method':'POST','query-parameters':{'param1':'${val1}','param2':'${val2}'},'form-parameters':{'a':'b','i':10},'body':'','parameters':{'val1':'abc','val2':'xyz'}}");
 
 		getBundle().setProperty("get.sample.call",
 				"{'reference':'get.sample.ref','parameters':{'val1':'abc123','val3':'xyz123'}}");
 		RestRequestBean r = new RestRequestBean();
-		r.fillData("get.sample.call");
-
-		System.out.println(r);
-
-		r.resolveParameters(null);
-		System.out.println(r);
-
+		 r.fillData("get.sample.call");
+		
+		 System.out.println(r);
+		
+		 r.resolveParameters(null);
+		 System.out.println(r);
 	}
 }
