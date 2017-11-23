@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.HierarchicalConfiguration.Node;
@@ -184,16 +185,18 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 	 * <li>parameter in request reference
 	 * <li>configuration property
 	 * </ol>
-	 * 
+	 * To ignore specific query or form parameter provide blank ('') value for that key.
 	 * @param data
 	 */
 	public void resolveParameters(Map<String, Object> data) {
 		JSONObject j = new JSONObject(this);
 		j.remove("reference");
 		String source = resolveParameters(j.toString(), data);
-		source = resolveParameters(j.toString(), getParameters());
 
 		fillFromJsonString(source);
+
+		removeBlanks(formParameters);
+		removeBlanks(queryParameters);
 
 		if (StringUtil.isNotBlank(body)) {
 			// is it points to file?
@@ -207,16 +210,6 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 				}
 			}
 		}
-	}
-
-	private String resolveParameters(String source, Map<String, Object> data) {
-		if (null != data && !data.isEmpty()) {
-			source = StrSubstitutor.replace(source, data);
-		}
-		source = StrSubstitutor.replace(source, parameters);
-		source = getBundle().getSubstitutor().replace(source);
-
-		return source;
 	}
 
 	@Override
@@ -284,7 +277,7 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 			}
 			fillData(map);
 		} catch (JSONException e) {
-			throw new AutomationError(jsonstr +" is not valid Json", e);
+			throw new AutomationError(jsonstr + " is not valid Json", e);
 		}
 
 	}
@@ -305,6 +298,16 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 		setMap(val, parameters);
 	}
 
+	private String resolveParameters(String source, Map<String, Object> data) {
+		if (null != data && !data.isEmpty()) {
+			source = StrSubstitutor.replace(source, data);
+		}
+		source = StrSubstitutor.replace(source, getParameters());
+		source = getBundle().getSubstitutor().replace(source);
+
+		return source;
+	}
+
 	private void setMap(String val, Map<String, Object> map) {
 		if (StringUtil.isNotBlank(val)) {
 			JSONObject jsonObject = new JSONObject(val);
@@ -319,19 +322,30 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 		}
 	}
 
+	private void removeBlanks(Map<String, Object> map) {
+		// clear null values
+		Iterator<Entry<String, Object>> itr = map.entrySet().iterator();
+		while (itr.hasNext()) {
+			Entry<String, Object> entry = itr.next();
+			if (entry.getValue() == null || StringUtil.isBlank(entry.getValue().toString())) {
+				itr.remove();
+			}
+		}
+	}
+
 	public static void main(String[] args) {
 		getBundle().setProperty("env.baseurl", "http://localhost:8080");
 		getBundle().setProperty("get.sample.ref",
-				"{'headers':{},'endPoint':'/myservice-endpoint','baseUrl':'${env.baseurl}','method':'POST','query-parameters':{'param1':'${val1}','param2':'${val2}'},'form-parameters':{'a':'b','i':10},'body':'','parameters':{'val1':'abc','val2':'xyz'}}");
+				"{'headers':{},'endPoint':'/myservice-endpoint','baseUrl':'${env.baseurl}','method':'POST','query-parameters':{'param1':'${val1}','param2':'${val2}'},'form-parameters':{'a':'b','i':'${i}','j':'${j}','k':10.01},'body':'','parameters':{'val1':'abc','val2':'xyz','i':10,'j':20}}");
 
 		getBundle().setProperty("get.sample.call",
-				"{'reference':'get.sample.ref','parameters':{'val1':'abc123','val3':'xyz123'}}");
+				"{'reference':'get.sample.ref','parameters':{'val1':'','val3':'xyz123','i':20,'j':''}}");
 		RestRequestBean r = new RestRequestBean();
-		 r.fillData("get.sample.call");
-		
-		 System.out.println(r);
-		
-		 r.resolveParameters(null);
-		 System.out.println(r);
+		r.fillData("get.sample.call");
+
+		System.out.println(r);
+
+		r.resolveParameters(null);
+		System.out.println(r);
 	}
 }
