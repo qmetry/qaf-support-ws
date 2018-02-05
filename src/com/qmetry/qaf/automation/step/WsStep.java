@@ -936,8 +936,6 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "say {var-name} is value at xpath {xpath}")
 	public static void sayValueAtXPath(String variable, String path) {
-		if (!path.startsWith("$"))
-			path = "$." + path;
 		Object value = XPathUtils.read(new RestTestBase().getResponse().getMessageBody()).getProperty(path);
 		getBundle().setProperty(variable, value);
 	}
