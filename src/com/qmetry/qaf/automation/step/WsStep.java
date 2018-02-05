@@ -30,11 +30,14 @@
 package com.qmetry.qaf.automation.step;
 
 import static com.qmetry.qaf.automation.core.ConfigurationManager.getBundle;
+import static com.qmetry.qaf.automation.util.Validator.assertFalse;
 import static com.qmetry.qaf.automation.util.Validator.assertThat;
+import static com.qmetry.qaf.automation.util.Validator.assertTrue;
+import static com.qmetry.qaf.automation.util.Validator.verifyFalse;
+import static com.qmetry.qaf.automation.util.Validator.verifyThat;
+import static com.qmetry.qaf.automation.util.Validator.verifyTrue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
-import static org.xmlmatchers.transform.XmlConverters.the;
-import static org.xmlmatchers.xpath.HasXPath.hasXPath;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +73,7 @@ import com.qmetry.qaf.automation.util.JSONUtil;
 import com.qmetry.qaf.automation.util.Reporter;
 import com.qmetry.qaf.automation.util.StringMatcher;
 import com.qmetry.qaf.automation.util.StringUtil;
+import com.qmetry.qaf.automation.util.XPathUtils;
 import com.qmetry.qaf.automation.ws.rest.RestTestBase;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
@@ -132,28 +136,6 @@ public final class WsStep {
 	public static void responseShouldHaveStatusCode(int statusCode) {
 		assertThat("Response Status", new RestTestBase().getResponse().getStatus().getStatusCode(),
 				Matchers.equalTo(statusCode));
-	}
-
-	/**
-	 * This method check given Xpath is there in response status of web service
-	 * <p>
-	 * Example:
-	 * <p>
-	 * BDD
-	 * </p>
-	 * <code>
-	 * response should have xpath 'Xpath String'<br/>
-	 * </code>
-	 * <p>
-	 * KWD
-	 * </p>
-	 * 
-	 * @param xpath
-	 *            : {0} : xpath string to be verified in respose
-	 */
-	@QAFTestStep(description = "response should have xpath {xpath}")
-	public static void responseShouldHaveXpath(String xpath) {
-		assertThat(the(new RestTestBase().getResponse().getMessageBody()), hasXPath(xpath));
 	}
 
 	/**
@@ -280,7 +262,6 @@ public final class WsStep {
 	 * response should have 'admin' at 'user.username'
 	 * </code>
 	 * <p />
-	 * 
 	 * @param expectedValue
 	 *            : expected value
 	 * @param path
@@ -309,7 +290,7 @@ public final class WsStep {
 	 * store response body 'user.username' to 'loginuser'
 	 * </code>
 	 * <p />
-	 * 
+	 * @deprecated user {@link #sayValueAtJsonPath(String, String)}
 	 * @param path
 	 *            jsonpath
 	 * @param variable
@@ -539,7 +520,7 @@ public final class WsStep {
 		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
 		assertThat(actual, Matchers.not(expectedValue));
 	}
-
+	
 	@QAFTestStep(description = "verify response schema for {0}")
 	public static boolean verifyResponseSchema(String requestKey) {
 		ProcessingReport result = null;
@@ -570,6 +551,395 @@ public final class WsStep {
 			e.printStackTrace();
 		}
 		return result != null && result.isSuccess();
+	}
+
+	/**
+	 * This is verification method to check value at jsonpath in response status of web service. It will continue test case even if failure. It
+	 * uses {@link StringMatcher} to match expected vs actual values. You can
+	 * specify matcher by providing prefix separated by ':', For example,
+	 * 'containsIgnoringCase:someValue' will use
+	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
+	 * {@link StringMatcher#exact(String)}
+	 * <p>
+	 * Example:
+	 * <p>
+	 * BDD
+	 * </p>
+	 * <code>
+	 * response should have value '1.90' at jsonpath '$.Price'<br/>
+	 * response should have value 'gte:1.90' at jsonpath '$.Price'<br/>
+	 * </code>
+	 * <p>
+	 * KWD
+	 * </p>
+	 * 
+	 * @param val
+	 *            : {val} : value to be verified in response
+	 * @param jsonpath
+	 *            : {jsonpath} : xpath to look value in response
+	 */
+	@QAFTestStep(description = "response should have value {val} at jsonpath {path}")
+	public static void responseShouldHaveValueAtJsonpath(Object val, String jsonpath) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(jsonpath));
+		StringMatcher matcher = getMatcher(val);
+		boolean res = matcher.match(String.valueOf(actual));
+		String message = "Expected value at jsonpath " + jsonpath + " [" + matcher + "] actual [" + actual + "]";
+		verifyTrue(res, message, message);
+	
+	}
+
+	/**
+	 * This is verification method to check value is not at jsonpath in response status of web service. It will continue test case even if failure. It
+	 * uses {@link StringMatcher} to match expected vs actual values. You can
+	 * specify matcher by providing prefix separated by ':', For example,
+	 * 'containsIgnoringCase:someValue' will use
+	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
+	 * {@link StringMatcher#exact(String)}
+	 * <p>
+	 * Example:
+	 * <p>
+	 * BDD
+	 * </p>
+	 * <code>
+	 * response should not have value '1.90' at jsonpath '$.Price'<br/>
+	 * response should not have value 'gte:1.90' at jsonpath '$.Price'<br/>
+	 * </code>
+	 * <p>
+	 * KWD
+	 * </p>
+	 * 
+	 * @param val
+	 *            : {val} : value to be verified in response
+	 * @param jsonpath
+	 *            : {jsonpath} : xpath to look value in response
+	 */
+	@QAFTestStep(description = "response should not have value {val} at jsonpath {path}")
+	public static void responseShouldNotHaveValueAtJsonpath(Object val, String jsonpath) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(jsonpath));
+		StringMatcher matcher = getMatcher(val);
+		boolean res = matcher.match(String.valueOf(actual));
+		String message = "Expected value at jsonpath " + jsonpath + " is not [" + matcher + "] actual [" + actual + "]";
+		verifyFalse(res, message, message);
+	
+	}
+	/**
+	 * This is assertion method to check value at jsonpath in response status of web service. It will break test case on failure. It
+	 * uses {@link StringMatcher} to match expected vs actual values. You can
+	 * specify matcher by providing prefix separated by ':', For example,
+	 * 'containsIgnoringCase:someValue' will use
+	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
+	 * {@link StringMatcher#exact(String)}
+	 * <p>
+	 * Example:
+	 * <p>
+	 * BDD
+	 * </p>
+	 * <code>
+	 * response has value '1.90' at jsonpath '$.Price'<br/>
+	 * response has value 'gte:1.90' at jsonpath '$.Price'<br/>
+	 * </code>
+	 * <p>
+	 * KWD
+	 * </p>
+	 * 
+	 * @param val
+	 *            : {val} : value to be verified in response
+	 * @param xpath
+	 *            : {jsonpath} : jsonpath to look value in response
+	 */
+	@QAFTestStep(description = "response has value {val} at xpath {jsonpath}")
+	public static void responseHasValueAtJsonpath(Object val, String jsonpath) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(jsonpath));
+		StringMatcher matcher = getMatcher(val);
+		boolean res = matcher.match(String.valueOf(actual));
+		String message = "Expected value at xpath " + jsonpath + " [" + matcher + "] actual [" + actual + "]";
+		assertTrue(res, message, message);
+	}
+
+	/**
+	 * This is assertion method to check value is not at jsonpath in response status of web service. It will break test case on failure. It
+	 * uses {@link StringMatcher} to match expected vs actual values. You can
+	 * specify matcher by providing prefix separated by ':', For example,
+	 * 'containsIgnoringCase:someValue' will use
+	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
+	 * {@link StringMatcher#exact(String)}
+	 * <p>
+	 * Example:
+	 * <p>
+	 * BDD
+	 * </p>
+	 * <code>
+	 * response has not value '1.90' at jsonpath '$.Price'<br/>
+	 * response has not value 'gte:1.90' at jsonpath '$.Price'<br/>
+	 * </code>
+	 * <p>
+	 * KWD
+	 * </p>
+	 * 
+	 * @param val
+	 *            : {val} : value to be verified in response
+	 * @param xpath
+	 *            : {jsonpath} : jsonpath to look value in response
+	 */
+	@QAFTestStep(description = "response has not value {val} at xpath {jsonpath}")
+	public static void responseHasValueNotAtJsonpath(Object val, String jsonpath) {
+		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(jsonpath));
+		StringMatcher matcher = getMatcher(val);
+		boolean res = matcher.match(String.valueOf(actual));
+		String message = "Expected value at xpath " + jsonpath + " is not [" + matcher + "] actual [" + actual + "]";
+		assertFalse(res, message, message);
+	}
+	/**
+	 * This method store value of given json path to
+	 * {@link ConfigurationManager}
+	 * <p>
+	 * Example:
+	 * </p>
+	 * <code>
+	 * say 'loginuser' is value at jsonpath 'user.username'
+	 * </code>
+	 * <p />
+	 * 
+	 *
+	 * @param variable
+	 *            variable that can be use later
+	 *  @param path
+	 *            jsonpath
+	 */
+	@QAFTestStep(description = "say {var-name} is value at jsonpath {jsonpath}")
+	public static void sayValueAtJsonPath(String variable, String path) {
+		if (!path.startsWith("$"))
+			path = "$." + path;
+		Object value = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
+		getBundle().setProperty(variable, value);
+	}
+
+	/**
+	 * This is verification method to check given Xpath is there in response status of web service. It will continue test case even if failure.
+	 * <p>
+	 * Example:
+	 * <p>
+	 * BDD
+	 * </p>
+	 * <code>
+	 * response should have xpath 'Xpath String'<br/>
+	 * </code>
+	 * <p>
+	 * KWD
+	 * </p>
+	 * 
+	 * @param xpath
+	 *            : {0} : xpath string to be verified in response
+	 */
+	@QAFTestStep(description = "response should have xpath {xpath}")
+	public static void responseShouldHaveXpath(String xpath) {
+		boolean hasXPath = !XPathUtils.read(new RestTestBase().getResponse().getMessageBody()).configurationsAt(xpath)
+				.isEmpty();
+		verifyThat("Expected xpath " + xpath, hasXPath, Matchers.is(true));
+		// assertThat(the(new RestTestBase().getResponse().getMessageBody()),
+		// hasXPath(xpath));
+	}
+	
+	/**
+	 * This is verification method to check given Xpath is not there in response status of web service. It will continue test case even if failure.
+	 * <p>
+	 * Example:
+	 * <p>
+	 * BDD
+	 * </p>
+	 * <code>
+	 * response should not have xpath 'Xpath String'<br/>
+	 * </code>
+	 * <p>
+	 * KWD
+	 * </p>
+	 * 
+	 * @param xpath
+	 *            : {0} : xpath to be verified in response
+	 */
+	@QAFTestStep(description = "response should not have xpath {xpath}")
+	public static void responseShouldNotHaveXpath(String xpath) {
+		boolean hasNoXPath = XPathUtils.read(new RestTestBase().getResponse().getMessageBody()).configurationsAt(xpath)
+				.isEmpty();
+		verifyThat("Expected xpath " + xpath + "not present", hasNoXPath, Matchers.is(false));
+	}
+
+
+	/**
+	 * This is verification method to check value at XPATH in response status of web service. It will continue test case even if failure. It
+	 * uses {@link StringMatcher} to match expected vs actual values. You can
+	 * specify matcher by providing prefix separated by ':', For example,
+	 * 'containsIgnoringCase:someValue' will use
+	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
+	 * {@link StringMatcher#exact(String)}
+	 * <p>
+	 * Example:
+	 * <p>
+	 * BDD
+	 * </p>
+	 * <code>
+	 * response should have value '1.90' at xpath '//Price'<br/>
+	 * response should have value 'gte:1.90' at xpath '//Price'<br/>
+	 * </code>
+	 * <p>
+	 * KWD
+	 * </p>
+	 * 
+	 * @param val
+	 *            : {val} : value to be verified in response
+	 * @param xpath
+	 *            : {xpath} : xpath to look value in response
+	 */
+	@QAFTestStep(description = "response should have value {val} at xpath {xpath}")
+	public static void responseShouldHaveValueAtXpath(Object val, String xpath) {
+		String actual = XPathUtils.read(new RestTestBase().getResponse().getMessageBody()).getString(xpath);
+		StringMatcher matcher = getMatcher(val);
+		boolean res = matcher.match(actual);
+		String message = "Expected value at xpath " + xpath + " [" + matcher + "] actual [" + actual + "]";
+		verifyTrue(res, message, message);
+		// assertThat(the(new RestTestBase().getResponse().getMessageBody()),
+		// hasXPath(xpath));
+	}
+
+	/**
+	 * This assertion method check given Xpath is there in response status of web service. It will break test case on failure.
+	 * <p>
+	 * Example:
+	 * <p>
+	 * BDD
+	 * </p>
+	 * <code>
+	 * response should have xpath 'Xpath String'<br/>
+	 * </code>
+	 * <p>
+	 * KWD
+	 * </p>
+	 * 
+	 * @param xpath
+	 *            : {0} : xpath string to be verified in response
+	 */
+	@QAFTestStep(description = "response has xpath {xpath}")
+	public static void responseHasXpath(String xpath) {
+		boolean hasXPath = !XPathUtils.read(new RestTestBase().getResponse().getMessageBody()).configurationsAt(xpath)
+				.isEmpty();
+		assertThat("Expected xpath " + xpath, hasXPath, Matchers.is(true));
+	}
+	
+	/**
+	 * This assertion method check given Xpath is not there in response status of web service. It will break test case on failure.
+	 * <p>
+	 * Example:
+	 * <p>
+	 * BDD
+	 * </p>
+	 * <code>
+	 * response has not xpath 'Xpath String'<br/>
+	 * </code>
+	 * <p>
+	 * KWD
+	 * </p>
+	 * 
+	 * @param xpath
+	 *            : {0} : xpath to be verified in response
+	 */
+	@QAFTestStep(description = "response has not xpath {xpath}")
+	public static void responseHasNotXpath(String xpath) {
+		boolean hasNoXPath = XPathUtils.read(new RestTestBase().getResponse().getMessageBody()).configurationsAt(xpath)
+				.isEmpty();
+		assertThat("Expected xpath " + xpath +" not present", hasNoXPath, Matchers.is(true));
+	}
+
+	/**
+	 * This is assertion method to check value at XPATH in response status of web service. It will break test case on failure. It
+	 * uses {@link StringMatcher} to match expected vs actual values. You can
+	 * specify matcher by providing prefix separated by ':', For example,
+	 * 'containsIgnoringCase:someValue' will use
+	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
+	 * {@link StringMatcher#exact(String)}
+	 * <p>
+	 * Example:
+	 * <p>
+	 * BDD
+	 * </p>
+	 * <code>
+	 * response has value '1.90' at xpath '//Price'<br/>
+	 * response has value 'gte:1.90' at xpath '//Price'<br/>
+	 * </code>
+	 * <p>
+	 * KWD
+	 * </p>
+	 * 
+	 * @param val
+	 *            : {val} : value to be verified in response
+	 * @param xpath
+	 *            : {xpath} : xpath to look value in response
+	 */
+	@QAFTestStep(description = "response has value {val} at xpath {xpath}")
+	public static void responseHasValueAtXpath(Object val, String xpath) {
+		String actual = XPathUtils.read(new RestTestBase().getResponse().getMessageBody()).getString(xpath);
+		StringMatcher matcher = getMatcher(val);
+		boolean res = matcher.match(actual);
+		String message = "Expected value at xpath " + xpath + " [" + matcher + "] actual [" + actual + "]";
+		assertTrue(res, message, message);
+	}
+
+	/**
+	 * This is assertion method to check value is not at XPATH in response status of web service. It will break test case on failure. It
+	 * uses {@link StringMatcher} to match expected vs actual values. You can
+	 * specify matcher by providing prefix separated by ':', For example,
+	 * 'containsIgnoringCase:someValue' will use
+	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
+	 * {@link StringMatcher#exact(String)}
+	 * <p>
+	 * Example:
+	 * <p>
+	 * BDD
+	 * </p>
+	 * <code>
+	 * response has not value '1.90' at xpath '//Price'<br/>
+	 * response has not value 'gte:1.90' at xpath '//Price'<br/>
+	 * </code>
+	 * <p>
+	 * KWD
+	 * </p>
+	 * 
+	 * @param val
+	 *            : {val} : value to be verified in response
+	 * @param xpath
+	 *            : {xpath} : xpath to look value in response
+	 */
+	@QAFTestStep(description = "response has not value {val} at xpath {xpath}")
+	public static void responseHasNotValueAtXpath(Object val, String xpath) {
+		String actual = XPathUtils.read(new RestTestBase().getResponse().getMessageBody()).getString(xpath);
+		StringMatcher matcher = getMatcher(val);
+		boolean res = matcher.match(actual);
+		String message = "Expected value at xpath " + xpath + " is not [" + matcher + "] actual [" + actual + "]";
+		assertFalse(res, message, message);
+	}
+
+	/**
+	 * This method store value of given xpath to
+	 * {@link ConfigurationManager}
+	 * <p>
+	 * Example:
+	 * </p>
+	 * <code>
+	 * say 'loginuser' is value at xpath '//user/username'
+	 * </code>
+	 * <p />
+	 * 
+	 *
+	 * @param variable
+	 *            variable that can be use later
+	 *  @param path
+	 *            xpath
+	 */
+	@QAFTestStep(description = "say {var-name} is value at xpath {xpath}")
+	public static void sayValueAtXPath(String variable, String path) {
+		if (!path.startsWith("$"))
+			path = "$." + path;
+		Object value = XPathUtils.read(new RestTestBase().getResponse().getMessageBody()).getProperty(path);
+		getBundle().setProperty(variable, value);
 	}
 
 	// move to rest test-base
@@ -681,4 +1051,17 @@ public final class WsStep {
 		return jsonpath;
 	}
 
+
+	private static StringMatcher getMatcher(Object o) {
+		if (o instanceof StringMatcher)
+			return (StringMatcher) o;
+		String s = o.toString();
+		if (s.indexOf(':') > 0) {
+			String[] parts = s.split(":", 2);
+			StringMatcher m = StringMatcher.get(parts[0], parts[1]);
+			if (null != m)
+				return m;
+		}
+		return StringMatcher.exact(s);
+	}
 }

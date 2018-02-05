@@ -216,7 +216,7 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 	public void fillData(Object obj) {
 		try {
 			boolean isString = (obj instanceof String);
-			if (isString && getBundle().containsKey((String) obj)) {
+			if (isString && (getBundle().containsKey((String) obj) || !getBundle().subset((String) obj).isEmpty())) {
 				fillFromConfig((String) obj);
 
 			} else {
@@ -334,12 +334,12 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 	}
 
 	public static void main(String[] args) {
-		getBundle().setProperty("env.baseurl", "http://localhost:8080");
+		getBundle().setProperty("env.baseurl", "http://httpbin.org");
 		getBundle().setProperty("get.sample.ref",
-				"{'headers':{},'endPoint':'/myservice-endpoint','baseUrl':'${env.baseurl}','method':'POST','query-parameters':{'param1':'${val1}','param2':'${val2}'},'form-parameters':{'a':'b','i':'${i}','j':'${j}','k':10.01},'body':'','parameters':{'val1':'abc','val2':'xyz','i':10,'j':20}}");
+				"{'headers':{},'endPoint':'/post','baseUrl':'${env.baseurl}','method':'POST','query-parameters':{'param1':'${val1}','param2':'${val2}'},'form-parameters':{'a':'b','i':'${i}','j':'${j}','k':10.01},'body':'','parameters':{'val1':'abc','val2':'xyz','i':10,'j':20}}");
 
 		getBundle().setProperty("get.sample.call",
-				"{'reference':'get.sample.ref','parameters':{'val1':'','val3':'xyz123','i':20,'j':''}}");
+				"{'reference':'get.sample.ref','parameters':{'val1':'','val3':'xyz123','i':20,'j':''},'body':'fileabcd123'}");
 		RestRequestBean r = new RestRequestBean();
 		r.fillData("get.sample.call");
 
