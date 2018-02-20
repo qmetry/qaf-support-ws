@@ -181,7 +181,7 @@ public final class WsStep {
 	 * response should have header 'Content-Type'<br/>
 	 * </code> <br/>
 	 * 
-	 * @param xpath
+	 * @param header
 	 *            : header to be verified in respose
 	 */
 	@QAFTestStep(description = "response should have header {0}")
@@ -576,7 +576,7 @@ public final class WsStep {
 	 * @param val
 	 *            : {val} : value to be verified in response
 	 * @param jsonpath
-	 *            : {jsonpath} : xpath to look value in response
+	 *            : {jsonpath} : jsonpath to look value in response
 	 */
 	@QAFTestStep(description = "response should have value {val} at jsonpath {path}")
 	public static void responseShouldHaveValueAtJsonpath(Object val, String jsonpath) {
@@ -611,7 +611,7 @@ public final class WsStep {
 	 * @param val
 	 *            : {val} : value to be verified in response
 	 * @param jsonpath
-	 *            : {jsonpath} : xpath to look value in response
+	 *            : {jsonpath} : jsonpath to look value in response
 	 */
 	@QAFTestStep(description = "response should not have value {val} at jsonpath {path}")
 	public static void responseShouldNotHaveValueAtJsonpath(Object val, String jsonpath) {
@@ -644,15 +644,15 @@ public final class WsStep {
 	 * 
 	 * @param val
 	 *            : {val} : value to be verified in response
-	 * @param xpath
+	 * @param jsonpath
 	 *            : {jsonpath} : jsonpath to look value in response
 	 */
-	@QAFTestStep(description = "response has value {val} at xpath {jsonpath}")
+	@QAFTestStep(description = "response has value {val} at jsonpath {jsonpath}")
 	public static void responseHasValueAtJsonpath(Object val, String jsonpath) {
 		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(jsonpath));
 		StringMatcher matcher = getMatcher(val);
 		boolean res = matcher.match(String.valueOf(actual));
-		String message = "Expected value at xpath " + jsonpath + " [" + matcher + "] actual [" + actual + "]";
+		String message = "Expected value at jsonpath " + jsonpath + " [" + matcher + "] actual [" + actual + "]";
 		assertTrue(res, message, message);
 	}
 
@@ -678,15 +678,15 @@ public final class WsStep {
 	 * 
 	 * @param val
 	 *            : {val} : value to be verified in response
-	 * @param xpath
+	 * @param jsonpath
 	 *            : {jsonpath} : jsonpath to look value in response
 	 */
-	@QAFTestStep(description = "response has not value {val} at xpath {jsonpath}")
+	@QAFTestStep(description = "response has not value {val} at jsonpath {jsonpath}")
 	public static void responseHasValueNotAtJsonpath(Object val, String jsonpath) {
 		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(jsonpath));
 		StringMatcher matcher = getMatcher(val);
 		boolean res = matcher.match(String.valueOf(actual));
-		String message = "Expected value at xpath " + jsonpath + " is not [" + matcher + "] actual [" + actual + "]";
+		String message = "Expected value at jsonpath " + jsonpath + " is not [" + matcher + "] actual [" + actual + "]";
 		assertFalse(res, message, message);
 	}
 	/**
@@ -797,6 +797,42 @@ public final class WsStep {
 		boolean res = matcher.match(actual);
 		String message = "Expected value at xpath " + xpath + " [" + matcher + "] actual [" + actual + "]";
 		verifyTrue(res, message, message);
+		// assertThat(the(new RestTestBase().getResponse().getMessageBody()),
+		// hasXPath(xpath));
+	}
+	
+	/**
+	 * This is verification method to check value at XPATH in response status of web service. It will continue test case even if failure. It
+	 * uses {@link StringMatcher} to match expected vs actual values. You can
+	 * specify matcher by providing prefix separated by ':', For example,
+	 * 'containsIgnoringCase:someValue' will use
+	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
+	 * {@link StringMatcher#exact(String)}
+	 * <p>
+	 * Example:
+	 * <p>
+	 * BDD
+	 * </p>
+	 * <code>
+	 * response should have value '1.90' at xpath '//Price'<br/>
+	 * response should have value 'gte:1.90' at xpath '//Price'<br/>
+	 * </code>
+	 * <p>
+	 * KWD
+	 * </p>
+	 * 
+	 * @param val
+	 *            : {val} : value to be verified in response
+	 * @param xpath
+	 *            : {xpath} : xpath to look value in response
+	 */
+	@QAFTestStep(description = "response should not have value {val} at xpath {xpath}")
+	public static void responseShouldNotHaveValueAtXpath(Object val, String xpath) {
+		String actual = XPathUtils.read(new RestTestBase().getResponse().getMessageBody()).getString(xpath);
+		StringMatcher matcher = getMatcher(val);
+		boolean res = matcher.match(actual);
+		String message = "Expected value at xpath " + xpath + " is not [" + matcher + "] actual [" + actual + "]";
+		verifyFalse(res, message, message);
 		// assertThat(the(new RestTestBase().getResponse().getMessageBody()),
 		// hasXPath(xpath));
 	}
