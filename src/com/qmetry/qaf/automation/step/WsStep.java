@@ -217,7 +217,7 @@ public final class WsStep {
 	 * Example:
 	 * </p>
 	 * <code>
-	 * response should have key 'user.username' with value 'admin'
+	 * response should have 'user.username'
 	 * </code>
 	 * <p />
 	 * 
