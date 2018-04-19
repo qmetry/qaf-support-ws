@@ -272,7 +272,7 @@ public final class WsStep {
 		if (!path.startsWith("$"))
 			path = "$." + path;
 		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
-		if (Number.class.isAssignableFrom(actual.getClass())) {
+		if (null!=actual && Number.class.isAssignableFrom(actual.getClass())) {
 			assertThat(new BigDecimal(String.valueOf(actual)),
 					Matchers.equalTo(new BigDecimal(String.valueOf(expectedValue))));
 		} else {
