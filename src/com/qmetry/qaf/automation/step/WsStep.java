@@ -997,22 +997,26 @@ public final class WsStep {
 			builder.header(header.getKey(), header.getValue());
 		}
 
-		String body = String.valueOf(bean.getBody());
+		String body = bean.getBody();
 		if (StringUtil.isNotBlank(body)) {
 			// if body then post only body
-
-			// is it points to file?
-			if (StringMatcher.startsWithIgnoringCase("file:").match(body)) {
+			
+			//binary stream?
+			if (StringMatcher.startsWithIgnoringCase("binary:").match(body)) {
+				byte[] bytes = new byte[0];//empty content
 				String file = body.split(":", 2)[1];
-				try {
-					body = FileUtil.readFileToString(new File(file), StandardCharsets.UTF_8);
-				} catch (IOException e) {
-					throw new AutomationError("Unable to read file: " + file, e);
+				if(StringUtil.isNotBlank(file)){
+					Path path = Paths.get(new File(file).getAbsolutePath());
+					try {
+						bytes = Files.readAllBytes(path);
+					} catch (IOException e) {
+						throw new AutomationError(e);
+					}
 				}
-				// resolve parameters if any
-				body = getBundle().getSubstitutor().replace(body);
+				return builder.method(bean.getMethod(), ClientResponse.class, bytes);
 			}
-			return builder.method(bean.getMethod(), ClientResponse.class, String.valueOf(body));
+			// raw body
+			return builder.method(bean.getMethod(), ClientResponse.class, body);
 		} else if (isFileUpload(bean.getFormParameters())) {
 			String fileName = "";
 			// if contains file then upload as multipart/octet-stream as per

@@ -197,6 +197,7 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 
 		removeBlanks(formParameters);
 		removeBlanks(queryParameters);
+		removeBlanks(headers);
 
 		if (StringUtil.isNotBlank(body)) {
 			// is it points to file?
