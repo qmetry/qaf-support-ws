@@ -42,7 +42,7 @@
     <dependency org="com.qmetry" name="qaf-support-ws" rev="latest.integration" />
     
     ```
- 3. Create web-service call repository having all your calls in following format in `.wsc` or `.properties` file
+ 3. Create [web-service call repository](https://github.com/qmetry/qaf-support-ws/wiki/Request-Call-Repository) having all your calls in following format in `.wsc` or `.properties` file
     ``` properties
     #format
     #my.ws.call = {'headers':<json map of key-val pair>,'endpoint':'/myservice-endPoint','baseUrl':'${env.baseurl}','method':'<method GET|POST|PUT|DELETE>','query-parameters':<json map of key-val pair>,'form-parameters':<json map of key-val pair>,'body':'<request-body>'}
