@@ -32,7 +32,7 @@
  ||Schema|	Y|
  |Run-configuration|Y|		TestNG XML (all features)|
  |||Parallel execution|
- |SOAP support	|	Out-of the box||
+ |SOAP support	|Y||
  |REST support		|Y||
 
  To start with 
