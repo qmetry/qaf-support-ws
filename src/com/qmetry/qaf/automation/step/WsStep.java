@@ -42,7 +42,6 @@ import static org.hamcrest.Matchers.hasEntry;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,6 +53,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
+import org.json.JSONObject;
 
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -68,7 +68,6 @@ import com.qmetry.qaf.automation.core.ConfigurationManager;
 import com.qmetry.qaf.automation.core.MessageTypes;
 import com.qmetry.qaf.automation.rest.RestRequestBean;
 import com.qmetry.qaf.automation.rest.WSCRepositoryConstants;
-import com.qmetry.qaf.automation.util.FileUtil;
 import com.qmetry.qaf.automation.util.JSONUtil;
 import com.qmetry.qaf.automation.util.Reporter;
 import com.qmetry.qaf.automation.util.StringMatcher;
@@ -1063,11 +1062,12 @@ public final class WsStep {
 	 */
 	private static boolean hasJsonPath(String json, String path) {
 		try {
-			JsonPath.read(json, path);
+			Object res = JsonPath.read(json, path);
+			JSONObject resObject = new JSONObject(res);
+			return !resObject.optBoolean("empty");
 		} catch (Exception exception) {
 			return false;
 		}
-		return true;
 	}
 
 	private static boolean isFileUpload(Map<String, Object> formParameters) {
