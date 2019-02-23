@@ -26,7 +26,7 @@
  * For any inquiry or need additional information, please contact
  * support-qaf@infostretch.com
  *******************************************************************************/
-package com.qmetry.qaf.automation.rest;
+package com.qmetry.qaf.automation.ws;
 
 import static com.qmetry.qaf.automation.core.ConfigurationManager.getBundle;
 
@@ -56,7 +56,7 @@ import com.qmetry.qaf.automation.util.StringUtil;
 /**
  * @author chirag.jayswal
  */
-public class RestRequestBean extends BaseDataBean implements Serializable {
+public class WsRequestBean extends BaseDataBean implements Serializable {
 
 	/**
 	 * 
@@ -248,9 +248,9 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 	}
 
 	@Override
-	public void fillData(Map<String, String> map) {
+	public void fillData(Map<String, Object> map) {
 		if (map.containsKey(WSCRepositoryConstants.REFERENCE)) {
-			fillFromConfig(map.get(WSCRepositoryConstants.REFERENCE));
+			fillFromConfig((String)map.get(WSCRepositoryConstants.REFERENCE));
 		}
 
 		updateKey(map, WSCRepositoryConstants.FORM_PARAMETERS, "formParameters");
@@ -268,7 +268,7 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 		try {
 			JSONObject jsonObject = new JSONObject(jsonstr);
 			String[] keys = JSONObject.getNames(jsonObject);
-			Map<String, String> map = new HashMap<String, String>();
+			Map<String, Object> map = new HashMap<String, Object>();
 			for (String key : keys) {
 				try {
 					map.put(key, jsonObject.getJSONObject(key).toString());
@@ -316,9 +316,9 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 		}
 	}
 
-	private void updateKey(Map<String, String> map, String oldKey, String newKey) {
+	private void updateKey(Map<String, Object> map, String oldKey, String newKey) {
 		if (map.containsKey(oldKey)) {
-			String value = map.remove(oldKey);
+			Object value = map.remove(oldKey);
 			map.put(newKey, value);
 		}
 	}
@@ -341,12 +341,14 @@ public class RestRequestBean extends BaseDataBean implements Serializable {
 
 		getBundle().setProperty("get.sample.call",
 				"{'reference':'get.sample.ref','parameters':{'val1':'','val3':'xyz123','i':20,'j':''},'body':'fileabcd123'}");
-		RestRequestBean r = new RestRequestBean();
+		WsRequestBean r = new WsRequestBean();
 		r.fillData("get.sample.call");
 
 		System.out.println(r);
 
 		r.resolveParameters(null);
 		System.out.println(r);
+		
+		//System.out.println(WsStep.userRequests(r).getEntity(String.class));
 	}
 }

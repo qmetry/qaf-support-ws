@@ -1,4 +1,4 @@
-package com.qmetry.qaf.automation.rest.client;
+package com.qmetry.qaf.automation.ws.client;
 
 import com.qmetry.qaf.automation.ws.rest.DefaultRestClient;
 import com.sun.jersey.api.client.Client;
@@ -6,7 +6,7 @@ import com.wealdtech.hawk.HawkClient;
 import com.wealdtech.hawk.HawkCredentials;
 import com.wealdtech.hawk.jersey.HawkAuthorizationFilter;
 
-public class HawkAuthRestClient extends DefaultRestClient {
+public class HawkAuthWsClient extends DefaultRestClient {
 
 	public static final String REST_CLIENT_HAWK_KEY_ID = "rest.client.hawk.auth.keyId";
 	public static final String REST_CLIENT_HAWK_KEY = "rest.client.hawk.auth.key";

@@ -1,4 +1,4 @@
-package com.qmetry.qaf.automation.rest.auth.oauth;
+package com.qmetry.qaf.automation.ws.auth.oauth;
 
 public class OAuthConstants {
 	public static final String PREFIX_KEY = "rest.client.oauth.auth.";

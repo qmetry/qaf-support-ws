@@ -27,7 +27,7 @@
  * support-qaf@infostretch.com
  *******************************************************************************/
 
-package com.qmetry.qaf.automation.rest;
+package com.qmetry.qaf.automation.ws;
 
 /**
  * @author amit.bhoraniya

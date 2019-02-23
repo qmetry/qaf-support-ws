@@ -1,4 +1,4 @@
-package com.qmetry.qaf.automation.rest.auth.oauth;
+package com.qmetry.qaf.automation.ws.auth.oauth;
 
 import java.io.IOException;
 import java.io.InputStream;

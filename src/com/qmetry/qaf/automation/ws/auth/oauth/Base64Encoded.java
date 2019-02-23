@@ -1,4 +1,4 @@
-package com.qmetry.qaf.automation.rest.auth.oauth;
+package com.qmetry.qaf.automation.ws.auth.oauth;
 
 import org.apache.commons.codec.binary.Base64;
 

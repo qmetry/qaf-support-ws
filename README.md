@@ -76,14 +76,14 @@
 1. For Basic authentication, please set below properties.
  
  ```
- rest.client.impl=com.qmetry.qaf.automation.rest.client.BasicAuthRestClient
+ rest.client.impl=com.qmetry.qaf.automation.ws.client.BasicAuthWsClient
  rest.client.basic.auth.username=<USERNAME>
  rest.client.basic.auth.password=<PASSWORD>
  ```
 2. For Digest type authentication, please set below properties.
  
  ```
- rest.client.impl=com.qmetry.qaf.automation.rest.client.DigestAuthRestClient
+ rest.client.impl=com.qmetry.qaf.automation.ws.client.DigestAuthWsClient
  rest.client.digest.auth.username=<USERNAME>
  rest.client.digest.auth.password=<PASSWORD>
  ```

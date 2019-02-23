@@ -41,6 +41,7 @@ import static org.hamcrest.Matchers.hasEntry;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -66,13 +67,14 @@ import com.jayway.jsonpath.JsonPath;
 import com.qmetry.qaf.automation.core.AutomationError;
 import com.qmetry.qaf.automation.core.ConfigurationManager;
 import com.qmetry.qaf.automation.core.MessageTypes;
-import com.qmetry.qaf.automation.rest.RestRequestBean;
-import com.qmetry.qaf.automation.rest.WSCRepositoryConstants;
+import com.qmetry.qaf.automation.keys.ApplicationProperties;
 import com.qmetry.qaf.automation.util.JSONUtil;
 import com.qmetry.qaf.automation.util.Reporter;
 import com.qmetry.qaf.automation.util.StringMatcher;
 import com.qmetry.qaf.automation.util.StringUtil;
 import com.qmetry.qaf.automation.util.XPathUtils;
+import com.qmetry.qaf.automation.ws.WsRequestBean;
+import com.qmetry.qaf.automation.ws.WSCRepositoryConstants;
 import com.qmetry.qaf.automation.ws.rest.RestTestBase;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
@@ -146,7 +148,7 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "user requests {0}")
 	public static ClientResponse userRequests(Object request) {
-		RestRequestBean bean = new RestRequestBean();
+		WsRequestBean bean = new WsRequestBean();
 		bean.fillData(request);
 		bean.resolveParameters(null);
 		return request(bean);
@@ -163,7 +165,7 @@ public final class WsStep {
 	 */
 	@QAFTestStep(description = "user requests {request} with data {data}", stepName = "userRequestsWithData")
 	public static ClientResponse userRequests(Object request, Map<String, Object> data) {
-		RestRequestBean bean = new RestRequestBean();
+		WsRequestBean bean = new WsRequestBean();
 		bean.fillData(request);
 		bean.resolveParameters(data);
 		return request(bean);
@@ -261,6 +263,7 @@ public final class WsStep {
 	 * response should have 'admin' at 'user.username'
 	 * </code>
 	 * <p />
+	 * 
 	 * @param expectedValue
 	 *            : expected value
 	 * @param path
@@ -271,7 +274,7 @@ public final class WsStep {
 		if (!path.startsWith("$"))
 			path = "$." + path;
 		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), path);
-		if (null!=actual && Number.class.isAssignableFrom(actual.getClass())) {
+		if (null != actual && Number.class.isAssignableFrom(actual.getClass())) {
 			assertThat(new BigDecimal(String.valueOf(actual)),
 					Matchers.equalTo(new BigDecimal(String.valueOf(expectedValue))));
 		} else {
@@ -289,6 +292,7 @@ public final class WsStep {
 	 * store response body 'user.username' to 'loginuser'
 	 * </code>
 	 * <p />
+	 * 
 	 * @deprecated user {@link #sayValueAtJsonPath(String, String)}
 	 * @param path
 	 *            jsonpath
@@ -366,6 +370,38 @@ public final class WsStep {
 	public static void responseShouldLessThan(double expectedValue, String path) {
 		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
 		assertThat(Double.parseDouble(String.valueOf(actual)), Matchers.lessThan(expectedValue));
+	}
+
+	/**
+	 * This method downloads and save file from the response in report directory for current execution.
+	 * <p>
+	 * BDD Example:
+	 * </p>
+	 * <pre>
+	 * <code>
+	 *    Given user requests "download.file.req"
+	 *    And store into 'file.response'
+	 *    Then save file as "logo.png" from "${file.response}"
+	 * </code>
+	 * </pre>
+	 * <p>
+	 * Java Example:
+	 * </p>
+	 * <pre>
+	 * <code>
+	 *    ClientResponse response  = userRequests("download.file.req");
+	 *    downloadFileFromResponse("logo.png", response);
+	 * </code>
+	 * </pre>
+	 * @param name
+	 * @param response
+	 * @throws IOException
+	 */
+	@QAFTestStep(description = "download file as {file-name} from {response}")
+	public static void downloadFileFromResponse(String name, ClientResponse response) throws IOException {
+		InputStream in = response.getEntityInputStream();
+		File logo = new File(ApplicationProperties.JSON_REPORT_DIR.getStringVal("."), name);
+		Files.copy(in, logo.toPath());
 	}
 
 	/**
@@ -519,7 +555,7 @@ public final class WsStep {
 		Object actual = JsonPath.read(new RestTestBase().getResponse().getMessageBody(), getPath(path));
 		assertThat(actual, Matchers.not(expectedValue));
 	}
-	
+
 	@QAFTestStep(description = "verify response schema for {0}")
 	public static boolean verifyResponseSchema(String requestKey) {
 		ProcessingReport result = null;
@@ -553,9 +589,10 @@ public final class WsStep {
 	}
 
 	/**
-	 * This is verification method to check value at jsonpath in response status of web service. It will continue test case even if failure. It
-	 * uses {@link StringMatcher} to match expected vs actual values. You can
-	 * specify matcher by providing prefix separated by ':', For example,
+	 * This is verification method to check value at jsonpath in response status
+	 * of web service. It will continue test case even if failure. It uses
+	 * {@link StringMatcher} to match expected vs actual values. You can specify
+	 * matcher by providing prefix separated by ':', For example,
 	 * 'containsIgnoringCase:someValue' will use
 	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
 	 * {@link StringMatcher#exact(String)}
@@ -584,11 +621,12 @@ public final class WsStep {
 		boolean res = matcher.match(String.valueOf(actual));
 		String message = "Expected value at jsonpath " + jsonpath + " [" + matcher + "] actual [" + actual + "]";
 		verifyTrue(res, message, message);
-	
+
 	}
 
 	/**
-	 * This is verification method to check value is not at jsonpath in response status of web service. It will continue test case even if failure. It
+	 * This is verification method to check value is not at jsonpath in response
+	 * status of web service. It will continue test case even if failure. It
 	 * uses {@link StringMatcher} to match expected vs actual values. You can
 	 * specify matcher by providing prefix separated by ':', For example,
 	 * 'containsIgnoringCase:someValue' will use
@@ -619,12 +657,14 @@ public final class WsStep {
 		boolean res = matcher.match(String.valueOf(actual));
 		String message = "Expected value at jsonpath " + jsonpath + " is not [" + matcher + "] actual [" + actual + "]";
 		verifyFalse(res, message, message);
-	
+
 	}
+
 	/**
-	 * This is assertion method to check value at jsonpath in response status of web service. It will break test case on failure. It
-	 * uses {@link StringMatcher} to match expected vs actual values. You can
-	 * specify matcher by providing prefix separated by ':', For example,
+	 * This is assertion method to check value at jsonpath in response status of
+	 * web service. It will break test case on failure. It uses
+	 * {@link StringMatcher} to match expected vs actual values. You can specify
+	 * matcher by providing prefix separated by ':', For example,
 	 * 'containsIgnoringCase:someValue' will use
 	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
 	 * {@link StringMatcher#exact(String)}
@@ -656,9 +696,10 @@ public final class WsStep {
 	}
 
 	/**
-	 * This is assertion method to check value is not at jsonpath in response status of web service. It will break test case on failure. It
-	 * uses {@link StringMatcher} to match expected vs actual values. You can
-	 * specify matcher by providing prefix separated by ':', For example,
+	 * This is assertion method to check value is not at jsonpath in response
+	 * status of web service. It will break test case on failure. It uses
+	 * {@link StringMatcher} to match expected vs actual values. You can specify
+	 * matcher by providing prefix separated by ':', For example,
 	 * 'containsIgnoringCase:someValue' will use
 	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
 	 * {@link StringMatcher#exact(String)}
@@ -688,6 +729,7 @@ public final class WsStep {
 		String message = "Expected value at jsonpath " + jsonpath + " is not [" + matcher + "] actual [" + actual + "]";
 		assertFalse(res, message, message);
 	}
+
 	/**
 	 * This method store value of given json path to
 	 * {@link ConfigurationManager}
@@ -702,7 +744,7 @@ public final class WsStep {
 	 *
 	 * @param variable
 	 *            variable that can be use later
-	 *  @param path
+	 * @param path
 	 *            jsonpath
 	 */
 	@QAFTestStep(description = "say {var-name} is value at jsonpath {jsonpath}")
@@ -714,7 +756,8 @@ public final class WsStep {
 	}
 
 	/**
-	 * This is verification method to check given Xpath is there in response status of web service. It will continue test case even if failure.
+	 * This is verification method to check given Xpath is there in response
+	 * status of web service. It will continue test case even if failure.
 	 * <p>
 	 * Example:
 	 * <p>
@@ -738,9 +781,10 @@ public final class WsStep {
 		// assertThat(the(new RestTestBase().getResponse().getMessageBody()),
 		// hasXPath(xpath));
 	}
-	
+
 	/**
-	 * This is verification method to check given Xpath is not there in response status of web service. It will continue test case even if failure.
+	 * This is verification method to check given Xpath is not there in response
+	 * status of web service. It will continue test case even if failure.
 	 * <p>
 	 * Example:
 	 * <p>
@@ -763,11 +807,11 @@ public final class WsStep {
 		verifyThat("Expected xpath " + xpath + "not present", hasNoXPath, Matchers.is(false));
 	}
 
-
 	/**
-	 * This is verification method to check value at XPATH in response status of web service. It will continue test case even if failure. It
-	 * uses {@link StringMatcher} to match expected vs actual values. You can
-	 * specify matcher by providing prefix separated by ':', For example,
+	 * This is verification method to check value at XPATH in response status of
+	 * web service. It will continue test case even if failure. It uses
+	 * {@link StringMatcher} to match expected vs actual values. You can specify
+	 * matcher by providing prefix separated by ':', For example,
 	 * 'containsIgnoringCase:someValue' will use
 	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
 	 * {@link StringMatcher#exact(String)}
@@ -799,11 +843,12 @@ public final class WsStep {
 		// assertThat(the(new RestTestBase().getResponse().getMessageBody()),
 		// hasXPath(xpath));
 	}
-	
+
 	/**
-	 * This is verification method to check value at XPATH in response status of web service. It will continue test case even if failure. It
-	 * uses {@link StringMatcher} to match expected vs actual values. You can
-	 * specify matcher by providing prefix separated by ':', For example,
+	 * This is verification method to check value at XPATH in response status of
+	 * web service. It will continue test case even if failure. It uses
+	 * {@link StringMatcher} to match expected vs actual values. You can specify
+	 * matcher by providing prefix separated by ':', For example,
 	 * 'containsIgnoringCase:someValue' will use
 	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
 	 * {@link StringMatcher#exact(String)}
@@ -837,7 +882,8 @@ public final class WsStep {
 	}
 
 	/**
-	 * This assertion method check given Xpath is there in response status of web service. It will break test case on failure.
+	 * This assertion method check given Xpath is there in response status of
+	 * web service. It will break test case on failure.
 	 * <p>
 	 * Example:
 	 * <p>
@@ -859,9 +905,10 @@ public final class WsStep {
 				.isEmpty();
 		assertThat("Expected xpath " + xpath, hasXPath, Matchers.is(true));
 	}
-	
+
 	/**
-	 * This assertion method check given Xpath is not there in response status of web service. It will break test case on failure.
+	 * This assertion method check given Xpath is not there in response status
+	 * of web service. It will break test case on failure.
 	 * <p>
 	 * Example:
 	 * <p>
@@ -881,13 +928,14 @@ public final class WsStep {
 	public static void responseHasNotXpath(String xpath) {
 		boolean hasNoXPath = XPathUtils.read(new RestTestBase().getResponse().getMessageBody()).configurationsAt(xpath)
 				.isEmpty();
-		assertThat("Expected xpath " + xpath +" not present", hasNoXPath, Matchers.is(true));
+		assertThat("Expected xpath " + xpath + " not present", hasNoXPath, Matchers.is(true));
 	}
 
 	/**
-	 * This is assertion method to check value at XPATH in response status of web service. It will break test case on failure. It
-	 * uses {@link StringMatcher} to match expected vs actual values. You can
-	 * specify matcher by providing prefix separated by ':', For example,
+	 * This is assertion method to check value at XPATH in response status of
+	 * web service. It will break test case on failure. It uses
+	 * {@link StringMatcher} to match expected vs actual values. You can specify
+	 * matcher by providing prefix separated by ':', For example,
 	 * 'containsIgnoringCase:someValue' will use
 	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
 	 * {@link StringMatcher#exact(String)}
@@ -919,9 +967,10 @@ public final class WsStep {
 	}
 
 	/**
-	 * This is assertion method to check value is not at XPATH in response status of web service. It will break test case on failure. It
-	 * uses {@link StringMatcher} to match expected vs actual values. You can
-	 * specify matcher by providing prefix separated by ':', For example,
+	 * This is assertion method to check value is not at XPATH in response
+	 * status of web service. It will break test case on failure. It uses
+	 * {@link StringMatcher} to match expected vs actual values. You can specify
+	 * matcher by providing prefix separated by ':', For example,
 	 * 'containsIgnoringCase:someValue' will use
 	 * {@link StringMatcher#containsIgnoringCase(String)} Default is
 	 * {@link StringMatcher#exact(String)}
@@ -953,8 +1002,7 @@ public final class WsStep {
 	}
 
 	/**
-	 * This method store value of given xpath to
-	 * {@link ConfigurationManager}
+	 * This method store value of given xpath to {@link ConfigurationManager}
 	 * <p>
 	 * Example:
 	 * </p>
@@ -966,7 +1014,7 @@ public final class WsStep {
 	 *
 	 * @param variable
 	 *            variable that can be use later
-	 *  @param path
+	 * @param path
 	 *            xpath
 	 */
 	@QAFTestStep(description = "say {var-name} is value at xpath {xpath}")
@@ -976,7 +1024,7 @@ public final class WsStep {
 	}
 
 	// move to rest test-base
-	public static ClientResponse request(RestRequestBean bean) {
+	public static ClientResponse request(WsRequestBean bean) {
 
 		WebResource resource = new RestTestBase().getWebResource(bean.getBaseUrl(), bean.getEndPoint());
 
@@ -999,12 +1047,12 @@ public final class WsStep {
 		String body = bean.getBody();
 		if (StringUtil.isNotBlank(body)) {
 			// if body then post only body
-			
-			//binary stream?
+
+			// binary stream?
 			if (StringMatcher.startsWithIgnoringCase("binary:").match(body)) {
-				byte[] bytes = new byte[0];//empty content
+				byte[] bytes = new byte[0];// empty content
 				String file = body.split(":", 2)[1];
-				if(StringUtil.isNotBlank(file)){
+				if (StringUtil.isNotBlank(file)) {
 					Path path = Paths.get(new File(file).getAbsolutePath());
 					try {
 						bytes = Files.readAllBytes(path);
@@ -1088,7 +1136,6 @@ public final class WsStep {
 			jsonpath = "$." + jsonpath;
 		return jsonpath;
 	}
-
 
 	private static StringMatcher getMatcher(Object o) {
 		if (o instanceof StringMatcher)

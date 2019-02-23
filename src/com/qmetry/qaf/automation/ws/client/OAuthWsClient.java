@@ -1,19 +1,18 @@
-package com.qmetry.qaf.automation.rest.client;
+package com.qmetry.qaf.automation.ws.client;
 
 import com.qmetry.qaf.automation.core.ConfigurationManager;
-import com.qmetry.qaf.automation.rest.auth.oauth.OAuth2Details;
-import com.qmetry.qaf.automation.rest.auth.oauth.OAuthConstants;
-import com.qmetry.qaf.automation.rest.auth.oauth.OAuthUtils;
 import com.qmetry.qaf.automation.util.StringUtil;
+import com.qmetry.qaf.automation.ws.auth.oauth.OAuth2Details;
+import com.qmetry.qaf.automation.ws.auth.oauth.OAuthConstants;
+import com.qmetry.qaf.automation.ws.auth.oauth.OAuthUtils;
 import com.qmetry.qaf.automation.ws.rest.DefaultRestClient;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientRequest;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.ClientFilter;
 
-public class OAuthRestClient extends DefaultRestClient {
+public class OAuthWsClient extends DefaultRestClient {
 	
 	@Override
 	protected Client createClient() {

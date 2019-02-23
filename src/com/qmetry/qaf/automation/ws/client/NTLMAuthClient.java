@@ -27,7 +27,7 @@
  * support-qaf@infostretch.com
  *******************************************************************************/
 
-package com.qmetry.qaf.automation.rest.client;
+package com.qmetry.qaf.automation.ws.client;
 
 import java.util.Arrays;
 
@@ -58,7 +58,7 @@ import static com.qmetry.qaf.automation.core.ConfigurationManager.getBundle;
  *
  * For NTLM authentication, register this class using <code>rest.client.impl</code> property as below:
  * <p>
- * <code>rest.client.impl=com.qmetry.qaf.automation.rest.client.NTLMAuthClient</code>
+ * <code>rest.client.impl=com.qmetry.qaf.automation.ws.client.NTLMAuthClient</code>
  * 
  * @author Chirag Jayswal
  * @since 2.1.12
