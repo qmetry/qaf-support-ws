@@ -20,11 +20,13 @@
         <conf name="runtime"  description="Additional run-time dependencies" extends="compile"/>
         <conf name="test"     description="Required for test only" extends="runtime"/>
         <conf name="provided" description="Needed for compile, but will be present on the target platform."/>
+        <conf name="import" description="Needed for compile, but dependency to be replaced with the effective list of dependencies in the specified POM's section."/>
+        
     </configurations>
     
 	<dependencies>
-		<dependency org="com.qmetry" name="qaf" rev="latest.integration" conf="test->default"/>
-		<dependency org="org.aspectj" name="aspectjtools" rev="1.8.5" conf="test->default">
+		<dependency org="com.qmetry" name="qaf" rev="2.1.14-RC3" conf="import->default"/>
+		<dependency org="org.aspectj" name="aspectjtools" rev="1.8.5" conf="import->default">
 			<artifact name="aspectjtools" type="jar"></artifact>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.sun.jersey.contribs/jersey-multipart -->

@@ -187,11 +187,13 @@ For any inquiry or need additional information, please contact support-qaf@infos
 
 <!-- Resolve ivy dependencies and create a Maven POM file -->
 <ivy:deliver deliverpattern="${dist.dir}/ivy.xml" pubrevision="${release.num}" status="release" />
-<ivy:makepom ivyfile="${dist.dir}/ivy.xml" pomfile="${dist.dir}/${artifact.name}.pom">
+<ivy:makepom ivyfile="${dist.dir}/ivy.xml" pomfile="${dist.dir}/${artifact.name}.pom"  templatefile="pom.tmpl">
 	<mapping conf="compile" scope="compile" />
 	<mapping conf="runtime" scope="runtime" />
 	<mapping conf="test" scope="test" />
 	<mapping conf="provided" scope="provided" />
+	<mapping conf="import" scope="import" />
+
 </ivy:makepom>
 
 <!-- Publish the local repo. Defaults to ~/.ivy2/local -->
