@@ -237,7 +237,7 @@ public class WsRequestBean extends BaseDataBean implements Serializable {
 		} else {
 			Configuration config = getBundle().subset(reqkey);
 			Iterator<?> keys = config.getKeys();
-			Map<String, String> map = new HashMap<String, String>();
+			Map<String, Object> map = new HashMap<String, Object>();
 			while (keys.hasNext()) {
 				String dataKey = String.valueOf(keys.next());
 				String value = config.getString(dataKey);
