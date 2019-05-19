@@ -186,18 +186,18 @@ For any inquiry or need additional information, please contact support-qaf@infos
 <ivy:buildnumber resolver="${publish.resolver}" organisation="${ivy.organisation}" module="${ivy.module}" revision="${release.num}" />
 
 <!-- Resolve ivy dependencies and create a Maven POM file -->
-<ivy:deliver deliverpattern="${dist.dir}/ivy.xml" pubrevision="${release.num}" status="release" />
+<ivy:deliver deliverpattern="${dist.dir}/ivy.xml" pubrevision="${release.num}"  status="${status}"/>
 <ivy:makepom ivyfile="${dist.dir}/ivy.xml" pomfile="${dist.dir}/${artifact.name}.pom"  templatefile="pom.tmpl">
 	<mapping conf="compile" scope="compile" />
 	<mapping conf="runtime" scope="runtime" />
 	<mapping conf="test" scope="test" />
 	<mapping conf="provided" scope="provided" />
-	<mapping conf="import" scope="import" />
+	<!-- <mapping conf="import" scope="import" /> -->
 
 </ivy:makepom>
 
 <!-- Publish the local repo. Defaults to ~/.ivy2/local -->
-<ivy:publish resolver="${publish.resolver}" forcedeliver="true" publishivy="false" pubrevision="${release.num}" overwrite="true">
+<ivy:publish resolver="${publish.resolver}" forcedeliver="true" publishivy="false" pubrevision="${release.num}" overwrite="true"  status="${status}">
 	<artifacts pattern="${dist.dir}/[artifact](-[classifier]).[ext]" />
 	<artifact name="${artifact.name}" pattern="${dist.dir}/[artifact].[ext]" ext="pom" type="pom" version="${release.num}" />
 	<artifact name="${artifact.name}" pattern="${dist.dir}/[artifact].[ext]" ext="jar" classifier="sources" type="sources" version="${release.num}" />
