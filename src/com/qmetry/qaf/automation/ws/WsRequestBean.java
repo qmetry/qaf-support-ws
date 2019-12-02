@@ -188,9 +188,9 @@ public class WsRequestBean extends BaseDataBean implements Serializable {
 
 		fillFromJsonString(source);
 
-		removeBlanks(formParameters);
-		removeBlanks(queryParameters);
-		removeBlanks(headers);
+		removeNulls(formParameters);
+		removeNulls(queryParameters);
+		removeNulls(headers);
 
 		if (StringUtil.isNotBlank(body)) {
 			// is it points to file?
@@ -316,12 +316,13 @@ public class WsRequestBean extends BaseDataBean implements Serializable {
 		}
 	}
 
-	private void removeBlanks(Map<String, Object> map) {
+	private void removeNulls(Map<String, Object> map) {
 		// clear null values
 		Iterator<Entry<String, Object>> itr = map.entrySet().iterator();
 		while (itr.hasNext()) {
 			Entry<String, Object> entry = itr.next();
-			if (entry.getValue() == null || StringUtil.isBlank(entry.getValue().toString())) {
+			if (entry.getValue() == null ){
+				//keep blank values as that may be intention to test
 				itr.remove();
 			}
 		}
