@@ -34,7 +34,7 @@
     </configurations>
     
 	<dependencies>
-		<dependency org="com.qmetry" name="qaf" rev="latest.integration" conf="provided->default"/>
+		<dependency org="com.qmetry" name="qaf" rev="latest.integration" conf="compile->default"/>
 		<dependency org="org.aspectj" name="aspectjtools" rev="1.8.5" >
 			<artifact name="aspectjtools" type="jar"></artifact>
 		</dependency>
