@@ -43,6 +43,7 @@ import com.qmetry.qaf.automation.core.AutomationError;
 import com.qmetry.qaf.automation.data.BaseDataBean;
 import com.qmetry.qaf.automation.keys.ApplicationProperties;
 import com.qmetry.qaf.automation.util.FileUtil;
+import com.qmetry.qaf.automation.util.JSONUtil;
 import com.qmetry.qaf.automation.util.StringMatcher;
 import com.qmetry.qaf.automation.util.StringUtil;
 
@@ -206,15 +207,18 @@ public class WsRequestBean extends BaseDataBean implements Serializable {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void fillData(Object obj) {
 		try {
 			boolean isString = (obj instanceof String);
-			if (isString && (getBundle().containsKey((String) obj) || !getBundle().subset((String) obj).isEmpty())) {
+			if(obj instanceof Map) {
+				fillData((Map<String, Object>)obj);
+			}else if (isString && (getBundle().containsKey((String) obj) || !getBundle().subset((String) obj).isEmpty())) {
 				fillFromConfig((String) obj);
 
 			} else {
-				String jsonStr = (isString ? (String) obj : new JSONObject(obj).toString());
+				String jsonStr = (isString ? (String) obj : JSONUtil.toString(obj));
 				fillFromJsonString(jsonStr);
 			}
 		} catch (Exception e) {
