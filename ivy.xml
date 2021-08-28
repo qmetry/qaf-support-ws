@@ -35,7 +35,7 @@
     
 	<dependencies>
 		<dependency org="com.qmetry" name="qaf" rev="latest.integration" conf="compile->default"/>
-		<dependency org="org.aspectj" name="aspectjtools" rev="1.8.5" >
+		<dependency org="org.aspectj" name="aspectjtools" rev="1.9.5" >
 			<artifact name="aspectjtools" type="jar"></artifact>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.sun.jersey.contribs/jersey-multipart -->
