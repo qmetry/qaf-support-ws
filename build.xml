@@ -27,7 +27,6 @@ For any inquiry or need additional information, please contact support-qaf@infos
 <project basedir="." default="build" name="QAF Web Services Support" xmlns:ivy="antlib:org.apache.ivy.ant">
 
 	<get src="https://raw.githubusercontent.com/qmetry/qaf-parent/master/common-build-tasks.xml" dest="../common-build-tasks.xml" skipexisting="true"/>
-	<import file="../common-build-tasks.xml" optional="false" />
 
 
 
@@ -91,4 +90,7 @@ For any inquiry or need additional information, please contact support-qaf@infos
 <delete dir="${dist.dir}/docs">
 </delete>
 </target>
+
+<import file="../common-build-tasks.xml" optional="false" />
+
 </project>
