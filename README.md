@@ -55,10 +55,9 @@
     
     
     ```
-  4. Create bdd
+  4. Create [bdd](https://qmetry.github.io/qaf/latest/bdd2.html)
    ```
-   SCENARIO: <scenario name>
-   META-DATA: {"description":"<scenario description>",<other metadata>}
+   Scenario: <scenario name>
 
       When user requests '${get.sample.call}'
       Then response should have status code '<status code>'
@@ -67,12 +66,11 @@
         :
         :
      ]  
-   END
    ```
    
  5. [Run your test](https://github.com/qmetry/qaf-step-by-step-tutorial/wiki/Exercise-3-Run-Your-First-Test)
  
- Here you can find [Example Projet](https://github.com/qmetry/WebServiceWithWebAutomation-Sample)
+ Refer ready to use [steps for validation](https://javadoc.io/doc/com.qmetry/qaf-support-ws/latest/com/qmetry/qaf/automation/step/WsStep.html). Here you can find [Example Projet](https://github.com/qmetry/WebServiceWithWebAutomation-Sample).
  
 # Authorization
 
