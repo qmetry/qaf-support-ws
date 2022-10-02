@@ -64,9 +64,10 @@ import com.qmetry.qaf.automation.util.JSONUtil;
 import com.qmetry.qaf.automation.util.Reporter;
 import com.qmetry.qaf.automation.util.StringMatcher;
 import com.qmetry.qaf.automation.util.StringUtil;
+import com.qmetry.qaf.automation.util.Validator;
 import com.qmetry.qaf.automation.util.XPathUtils;
-import com.qmetry.qaf.automation.ws.WsRequestBean;
 import com.qmetry.qaf.automation.ws.WSCRepositoryConstants;
+import com.qmetry.qaf.automation.ws.WsRequestBean;
 import com.qmetry.qaf.automation.ws.rest.RestTestBase;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
@@ -721,6 +722,26 @@ public final class WsStep {
 		String message = "Expected value at jsonpath " + jsonpath + " is not [" + matcher + "] actual [" + actual + "]";
 		assertFalse(res, message, message);
 	}
+	
+	@QAFTestStep(description = "response contains json {expectedJsonStr}")
+	public static void assertResponseContains(String expectedJsonStr) {
+		Validator.assertJsonContains(new RestTestBase().getResponse().getMessageBody(), expectedJsonStr);
+	}
+
+	@QAFTestStep(description = "response should contain json {expectedJsonStr}")
+	public static void verifyResponseContains(String expectedJsonStr) {
+		Validator.verifyJsonContains(new RestTestBase().getResponse().getMessageBody(), expectedJsonStr);
+	}
+
+	@QAFTestStep(description = "response matches json {expectedJsonStr}")
+	public static void assertResponseMatches(String expectedJsonStr) {
+		Validator.assertJsonMatches(new RestTestBase().getResponse().getMessageBody(), expectedJsonStr);
+	}
+
+	@QAFTestStep(description = "response should match json {expectedJsonStr}")
+	public static void verifyResponseMatches(String expectedJsonStr) {
+		Validator.verifyJsonMatches(new RestTestBase().getResponse().getMessageBody(), expectedJsonStr);
+	}
 
 	/**
 	 * This method store value of given json path to
@@ -1014,7 +1035,13 @@ public final class WsStep {
 		Object value = XPathUtils.read(new RestTestBase().getResponse().getMessageBody()).getProperty(path);
 		getBundle().setProperty(variable, value);
 	}
-
+    @QAFTestStep(description = "resolve request call {0} with {data}")
+    public WsRequestBean resolveWSCwithData(Object request, Map<String, Object> data) {
+    	WsRequestBean bean = new WsRequestBean();
+		bean.fillData(request);
+		bean.resolveParameters(data);
+		return bean;
+    }
 	// move to rest test-base
 	public static ClientResponse request(WsRequestBean bean) {
 
