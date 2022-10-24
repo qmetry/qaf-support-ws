@@ -308,8 +308,7 @@ public class WsRequestBean extends BaseDataBean implements Serializable {
 
 	private void setMap(String val, Map<String, Object> map) {
 		if (StringUtil.isNotBlank(val)) {
-			JSONObject jsonObject = new JSONObject(val);
-			map.putAll(jsonObject.toMap());
+			map.putAll(JSONUtil.toMap(val));
 		}
 	}
 
