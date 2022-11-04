@@ -94,7 +94,7 @@
  
  ```
  rest.client.impl=com.qmetry.qaf.automation.ws.client.OAuthWsClient
-	rest.client.oauth.auth.access_token=<ACCESS_TOKEN>
+ rest.client.oauth.auth.access_token=<ACCESS_TOKEN>
  rest.client.oauth.auth.client_id=<CLIENT_ID>
  rest.client.oauth.auth.client_secret=<CLIENT_SECRET>
  rest.client.oauth.auth.refresh_token=<REFRESH_TOKEN>
@@ -103,8 +103,6 @@
  rest.client.oauth.auth.authentication_server_url=<AUTHENTICATION_SERVER_URL>
  rest.client.oauth.auth.resource_server_url=<RESOURCE_SERVER_URL>
  rest.client.oauth.auth.grant_type=<GRANT_TYPE>
- rest.client.oauth.auth.
-
  ```
  4. NTLM authentication,requires below properties.
  
@@ -114,7 +112,6 @@
  ntlm.password=PASSWORD
  ntlm.workstation=<WORKSTATION>
  ntlm.domain=<DOMAIN>
-
  ```
  5. Hawk authentication,requires below properties
  
