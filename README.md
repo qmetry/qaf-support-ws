@@ -76,17 +76,50 @@
 
  This dependency provides few well known Authentication support as well.
  
-1. For Basic authentication, please set below properties.
+1. Basic authentication, requires below properties.
  
  ```
  rest.client.impl=com.qmetry.qaf.automation.ws.client.BasicAuthWsClient
  rest.client.basic.auth.username=<USERNAME>
  rest.client.basic.auth.password=<PASSWORD>
  ```
-2. For Digest type authentication, please set below properties.
+2. Digest type authentication, requires below properties.
  
  ```
  rest.client.impl=com.qmetry.qaf.automation.ws.client.DigestAuthWsClient
  rest.client.digest.auth.username=<USERNAME>
  rest.client.digest.auth.password=<PASSWORD>
+ ```
+ 3. OAuth type authentication,requires below properties.
+ 
+ ```
+ rest.client.impl=com.qmetry.qaf.automation.ws.client.OAuthWsClient
+	rest.client.oauth.auth.access_token=<ACCESS_TOKEN>
+ rest.client.oauth.auth.client_id=<CLIENT_ID>
+ rest.client.oauth.auth.client_secret=<CLIENT_SECRET>
+ rest.client.oauth.auth.refresh_token=<REFRESH_TOKEN>
+ rest.client.oauth.auth.username=<USERNAME>
+ rest.client.oauth.auth.password=<PASSWORD>
+ rest.client.oauth.auth.authentication_server_url=<AUTHENTICATION_SERVER_URL>
+ rest.client.oauth.auth.resource_server_url=<RESOURCE_SERVER_URL>
+ rest.client.oauth.auth.grant_type=<GRANT_TYPE>
+ rest.client.oauth.auth.
+
+ ```
+ 4. NTLM authentication,requires below properties.
+ 
+ ```
+ rest.client.impl=com.qmetry.qaf.automation.ws.client.NTLMAuthClient
+ ntlm.user=<USERNAME>
+ ntlm.password=PASSWORD
+ ntlm.workstation=<WORKSTATION>
+ ntlm.domain=<DOMAIN>
+
+ ```
+ 5. Hawk authentication,requires below properties
+ 
+ ```
+ rest.client.impl=com.qmetry.qaf.automation.ws.client.HawkAuthWsClient
+ rest.client.hawk.auth.keyId=<HAWK_KEY_ID>
+ rest.client.hawk.auth.key=<HAWK_KEY>
  ```
