@@ -348,4 +348,7 @@ public class WsRequestBean extends BaseDataBean implements Serializable {
 		
 		//System.out.println(WsStep.userRequests(r).getEntity(String.class));
 	}
+	public String toString() {
+		return JSONUtil.toString(this);
+	}
 }
