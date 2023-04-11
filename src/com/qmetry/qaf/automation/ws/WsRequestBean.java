@@ -32,8 +32,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.HierarchicalConfiguration.Node;
+import org.apache.commons.configuration.tree.ConfigurationNode;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -183,29 +183,42 @@ public class WsRequestBean extends BaseDataBean implements Serializable {
 	 * @param data
 	 */
 	public void resolveParameters(Map<String, Object> data) {
+
 		JSONObject j = new JSONObject(this);
 		j.remove("reference");
-		String source = resolveParameters(j.toString(), data);
+		String source = j.toString();
+
+		// highest: data provided in argument while doing request
+		if (null != data && !data.isEmpty()) {
+			source = StrSubstitutor.replace(source, data);
+		}
+		//second: configuration manager
+		source = getBundle().getSubstitutor().replace(source);
 
 		fillFromJsonString(source);
 
-		removeNulls(formParameters);
-		removeNulls(queryParameters);
-		removeNulls(headers);
-
-		if (StringUtil.isNotBlank(body)) {
-			// is it points to file?
-			if (StringMatcher.startsWithIgnoringCase("file:").match(body)) {
-				String file = body.split(":", 2)[1];
-				try {
-					body = FileUtil.readFileToString(new File(file), StandardCharsets.UTF_8);
-					body = resolveParameters(body, data);
-				} catch (IOException e) {
-					throw new AutomationError("Unable to read file: " + file, e);
-				}
+		// lowest: default value in request call
+		if (null != getParameters() && !getParameters().isEmpty()) {
+			source = StrSubstitutor.replace(source, getParameters());
+			fillFromJsonString(source);
+		}
+		// body from file?
+		if (StringUtil.isNotBlank(body) && StringMatcher.startsWithIgnoringCase("file:").match(body)) {
+			String file = body.split(":", 2)[1].trim();
+			try {
+				body = FileUtil.readFileToString(new File(file), StandardCharsets.UTF_8);
+				resolveParameters(data);
+			} catch (IOException e) {
+				throw new AutomationError("Unable to read file: " + file, e);
 			}
+		}else {
+			removeNulls(formParameters);
+			removeNulls(queryParameters);
+			removeNulls(headers);
 		}
 	}
+	
+
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -228,21 +241,29 @@ public class WsRequestBean extends BaseDataBean implements Serializable {
 
 	@Override
 	public void fillFromConfig(String reqkey) {
-		Node node = getBundle().configurationAt(reqkey).getRoot();
-		if (!node.hasChildren()) {
-			fillFromJsonString(getBundle().getString(reqkey));
+		ConfigurationNode node = getBundle().configurationAt(reqkey).getRootNode();
+		if (node.getValue()!=null) {
+			fillFromJsonString((String)node.getValue());
 		} else {
-			Configuration config = getBundle().subset(reqkey);
-			Iterator<?> keys = config.getKeys();
-			Map<String, Object> map = new HashMap<String, Object>();
-			while (keys.hasNext()) {
-				String dataKey = String.valueOf(keys.next());
-				String value = config.getString(dataKey);
-				map.put(dataKey, value);
-			}
+			Map<String, Object> map = nodeToMap(node);
 			fillData(map);
 		}
 	}
+	
+	private Map<String, Object> nodeToMap(ConfigurationNode node){
+		Map<String, Object> map = new HashMap<String, Object>();
+		Iterator<?> nodes = node.getChildren().iterator();
+		while (nodes.hasNext()) {
+			Node cNode = (Node) nodes.next();
+			if (!cNode.hasChildren()) {
+				map.put(cNode.getName(), cNode.getValue());
+			}else {
+				map.put(cNode.getName(), nodeToMap(cNode));
+			}
+		}
+		return map;
+	}
+	
 
 	@Override
 	public void fillData(Map<String, Object> map) {
@@ -265,15 +286,17 @@ public class WsRequestBean extends BaseDataBean implements Serializable {
 		try {
 			JSONObject jsonObject = new JSONObject(jsonstr);
 			String[] keys = JSONObject.getNames(jsonObject);
-			Map<String, Object> map = new HashMap<String, Object>();
-			for (String key : keys) {
-				try {
-					map.put(key, jsonObject.getJSONObject(key).toString());
-				} catch (Exception e) {
-					map.put(key, jsonObject.get(key).toString());
+			if (null != keys) {
+				Map<String, Object> map = new HashMap<String, Object>();
+				for (String key : keys) {
+					try {
+						map.put(key, jsonObject.getJSONObject(key).toString());
+					} catch (Exception e) {
+						map.put(key, jsonObject.get(key).toString());
+					}
 				}
+				fillData(map);
 			}
-			fillData(map);
 		} catch (JSONException e) {
 			throw new AutomationError(jsonstr + " is not valid Json", e);
 		}
@@ -294,16 +317,6 @@ public class WsRequestBean extends BaseDataBean implements Serializable {
 
 	public void setParameters(String val) {
 		setMap(val, parameters);
-	}
-
-	private String resolveParameters(String source, Map<String, Object> data) {
-		if (null != data && !data.isEmpty()) {
-			source = StrSubstitutor.replace(source, data);
-		}
-		source = StrSubstitutor.replace(source, getParameters());
-		source = getBundle().getSubstitutor().replace(source);
-
-		return source;
 	}
 
 	private void setMap(String val, Map<String, Object> map) {
@@ -348,6 +361,7 @@ public class WsRequestBean extends BaseDataBean implements Serializable {
 		
 		//System.out.println(WsStep.userRequests(r).getEntity(String.class));
 	}
+	
 	public String toString() {
 		return JSONUtil.toString(this);
 	}
