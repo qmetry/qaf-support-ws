@@ -44,23 +44,31 @@
 		<dependency org="com.sun.jersey.contribs" name="jersey-multipart"
 			rev="1.19" conf="compile->default"/>
 		<dependency org="com.sun.jersey.contribs" name="jersey-apache-client4" rev="1.19.4"  conf="compile->default" />
-		<dependency org="org.apache.httpcomponents" name="httpclient" rev="4.5.1"  conf="compile->default" />		
+		<dependency org="org.apache.httpcomponents" name="httpclient" rev="4.5.14"  conf="compile->default">
+			<exclude org="junit"/>
+		</dependency>		
 		<!--  ws  -->
 		<!-- <dependency org="xmlunit" name="xmlunit" rev="1.4" conf="provided->default"/>
 		<dependency org="org.xmlmatchers" name="xml-matchers" rev="latest.integration" conf="provided->default"/> -->
-		<dependency org="com.jayway.jsonpath" name="json-path" rev="2.2.0" conf="compile->default"/>
+		<dependency org="com.jayway.jsonpath" name="json-path" rev="2.9.0" conf="compile->default"/>
 		<dependency org="com.jayway.jsonpath" name="json-path-assert"
-			rev="2.2.0" conf="compile->default"/>
-		<dependency org="com.github.fge" name="json-schema-validator" rev="2.2.6" conf="compile->default"/>
-		<dependency org="com.github.fge" name="jackson-coreutils" rev="1.8" conf="compile->default"/>
-		<dependency org="com.google.code.gson" name="gson" rev="2.8.5" conf="provided->default"/>
-		<dependency org="com.wealdtech.hawk" name="hawk-client-jersey" rev="1.2.3" conf="compile->default"/>
-		<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
-		<dependency org="com.googlecode.json-simple" name="json-simple" rev="1.1.1" conf="compile->default"/>
-		<!-- https://mvnrepository.com/artifact/commons-jxpath/commons-jxpath -->
-		<dependency org="commons-jxpath" name="commons-jxpath" rev="1.3">
-			<exclude org="com.mockrunner"/>
+			rev="2.9.0" conf="compile->default"/>
+		<!-- <dependency org="com.github.fge" name="json-schema-validator" rev="2.2.6" conf="compile->default"/>
+		<dependency org="com.github.fge" name="jackson-coreutils" rev="1.8" conf="compile->default"/> -->
+		<dependency org="com.github.java-json-tools" name="json-schema-validator" rev="2.2.14"> 
+			<exclude org="com.google.guava"/>
+			<exclude org="org.testng"/>			
 		</dependency>
+		<!-- <dependency org="com.google.code.gson" name="gson" rev="2.8.5" conf="provided->default"/> -->
+		<dependency org="com.wealdtech.hawk" name="hawk-client-jersey" rev="1.2.3" />
+		<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
+		<dependency org="com.googlecode.json-simple" name="json-simple" rev="1.1.1">
+			<exclude org="junit"/>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-jxpath/commons-jxpath 
+		<dependency org="commons-jxpath" name="commons-jxpath" rev="1.3">
+			<exclude org="com.mockrunner"/> 
+		</dependency> -->
 		
 	</dependencies>
 </ivy-module>
